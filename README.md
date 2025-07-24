@@ -45,8 +45,8 @@ ScriptPilot/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/ScriptPilot.git
-cd ScriptPilot
+git clone https://github.com/0xTanzim/scriptPilot.git
+cd scriptPilot
 
 # Install dependencies
 pnpm install
@@ -180,7 +180,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/your-org/ScriptPilot/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/your-org/ScriptPilot/discussions)
-- 📧 **Email**: support@scriptpilot.dev
+- 📧 **Email**: <support@scriptpilot.dev>
 
 ---
 
