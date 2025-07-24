@@ -1,0 +1,29 @@
+{
+  "name": "@scriptpilot/core",
+  "version": "0.1.0",
+  "description": "Core functionality for ScriptPilot userscript manager",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@scriptpilot/types": "workspace:*",
+    "uuid": "^11.1.0",
+    "webextension-polyfill": "^0.12.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^10.0.0",
+    "@types/webextension-polyfill": "^0.12.3",
+    "jest": "^29.7.0",
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
+}

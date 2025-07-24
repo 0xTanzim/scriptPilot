@@ -1,0 +1,40 @@
+{
+  "name": "@scriptpilot/ui",
+  "version": "0.1.0",
+  "description": "React UI components for ScriptPilot",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && vite build",
+    "dev": "vite",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@scriptpilot/types": "workspace:*",
+    "@scriptpilot/core": "workspace:*",
+    "@monaco-editor/react": "^4.7.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@testing-library/react": "^16.3.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "jest": "^30.0.5",
+    "postcss": "^8.4.33",
+    "typescript": "^5.3.3",
+    "vite": "^7.0.5"
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
+}

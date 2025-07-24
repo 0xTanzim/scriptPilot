@@ -1,0 +1,28 @@
+{
+  "name": "@scriptpilot/storage",
+  "version": "0.1.0",
+  "description": "Storage layer for ScriptPilot using Dexie and Chrome Storage",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@scriptpilot/types": "workspace:*",
+    "dexie": "^4.0.11",
+    "webextension-polyfill": "^0.12.0"
+  },
+  "devDependencies": {
+    "@types/webextension-polyfill": "^0.12.3",
+    "jest": "^30.0.5",
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
+}

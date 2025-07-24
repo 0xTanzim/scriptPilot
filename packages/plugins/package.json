@@ -1,0 +1,27 @@
+{
+  "name": "@scriptpilot/plugins",
+  "version": "0.1.0",
+  "description": "Plugin system for ScriptPilot extensibility",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@scriptpilot/types": "workspace:*",
+    "@scriptpilot/core": "workspace:*",
+    "inversify": "^7.6.1"
+  },
+  "devDependencies": {
+    "jest": "^30.0.5",
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
+}
