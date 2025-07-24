@@ -11,12 +11,15 @@
         font-family:
           -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
         background-color: #ffffff;
+        color: #1f2937;
       }
 
       /* Popup mode styles */
       body.popup-mode {
-        width: 400px;
-        min-height: 500px;
+        width: 420px;
+        min-height: 580px;
+        max-height: 600px;
+        overflow: hidden;
       }
 
       /* Fullscreen mode styles */
@@ -29,25 +32,43 @@
       #root {
         width: 100%;
         height: 100%;
+        display: flex;
+        flex-direction: column;
       }
 
       /* Loading styles */
       .loading {
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
-        height: 200px;
-        color: #666;
+        height: 580px;
+        color: #6b7280;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+
+      .loading h2 {
+        color: white;
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+
+      .loading p {
+        color: rgba(255, 255, 255, 0.8);
+        margin: 8px 0;
+        font-size: 14px;
       }
 
       .spinner {
-        border: 2px solid #f3f3f3;
-        border-top: 2px solid #007cba;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top: 3px solid #ffffff;
         border-radius: 50%;
-        width: 20px;
-        height: 20px;
+        width: 40px;
+        height: 40px;
         animation: spin 1s linear infinite;
-        margin-right: 10px;
+        margin-bottom: 20px;
       }
 
       @keyframes spin {
@@ -58,34 +79,74 @@
           transform: rotate(360deg);
         }
       }
-    </style>
-    <script>
-      // Detect mode and apply appropriate styles
-      function detectMode() {
-        const isFullscreen =
-          window.innerWidth > 500 || window.location.hash.includes('editor');
-        document.body.className = isFullscreen
-          ? 'fullscreen-mode'
-          : 'popup-mode';
+
+      /* Enhanced ScriptPilot branding */
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
       }
 
-      // Apply mode detection on load and resize
-      window.addEventListener('load', detectMode);
-      window.addEventListener('resize', detectMode);
-      window.addEventListener('hashchange', detectMode);
+      .brand-icon {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+      }
 
-      // Apply initial detection
-      detectMode();
-    </script>
+      /* Error styles */
+      .error {
+        padding: 20px;
+        text-align: center;
+        color: #dc2626;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        margin: 20px;
+      }
+
+      .error h3 {
+        margin: 0 0 8px 0;
+        color: #dc2626;
+      }
+
+      .error button {
+        margin-top: 12px;
+        padding: 8px 16px;
+        background: #dc2626;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .error button:hover {
+        background: #b91c1c;
+      }
+    </style>
+    <script type="module" src="popup-init.js"></script>
   </head>
   <body>
     <div id="root">
       <div class="loading">
+        <div class="brand">
+          <div class="brand-icon">SP</div>
+          <h2>ScriptPilot</h2>
+        </div>
         <div class="spinner"></div>
-        Loading ScriptPilot...
+        <p>Modern Userscript Manager</p>
+        <p>Loading your scripts...</p>
       </div>
     </div>
 
-    <script type="module" src="./popup.js"></script>
+    <script type="module" src="./popup.tsx"></script>
   </body>
 </html>

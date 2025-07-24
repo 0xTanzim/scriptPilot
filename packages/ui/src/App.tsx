@@ -206,7 +206,6 @@ export function App({
                 onCreateScript={handleCreateScript}
                 onDeleteScript={handleDeleteScript}
                 onToggleScript={handleToggleScript}
-                mode={mode}
               />
             </TabsContent>
 

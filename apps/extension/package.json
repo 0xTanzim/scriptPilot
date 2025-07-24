@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@scriptpilot/core": "workspace:*",
-    "@scriptpilot/ui": "workspace:*",
-    "@scriptpilot/storage": "workspace:*",
     "@scriptpilot/plugins": "workspace:*",
+    "@scriptpilot/storage": "workspace:*",
     "@scriptpilot/types": "workspace:*",
+    "@scriptpilot/ui": "workspace:*",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "webextension-polyfill": "^0.12.0"
@@ -29,7 +29,8 @@
     "jest": "^30.0.5",
     "puppeteer": "^24.15.0",
     "typescript": "^5.8.3",
-    "vite": "^7.0.5"
+    "vite": "^7.0.5",
+    "vite-plugin-static-copy": "^3.1.1"
   },
   "files": [
     "dist",

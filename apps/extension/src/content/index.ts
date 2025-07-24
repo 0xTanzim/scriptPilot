@@ -180,108 +180,28 @@ class ContentScript {
 
   private injectGMAPI(): void {
     try {
-      // Create script element to inject GM API into page context
-      const script = document.createElement('script');
-      script.textContent = `
-        (function() {
-          'use strict';
-
-          // GM API implementation for page context
-          const GM_API = {
-            setValue: async (key, value) => {
-              return window.dispatchEvent(new CustomEvent('scriptpilot:gm-call', {
-                detail: { method: 'setValue', args: [key, value] }
-              }));
-            },
-
-            getValue: async (key, defaultValue) => {
-              return new Promise((resolve) => {
-                const requestId = Math.random().toString(36).substr(2, 9);
-                const handler = (event) => {
-                  if (event.detail.requestId === requestId) {
-                    resolve(event.detail.result);
-                    window.removeEventListener('scriptpilot:gm-response', handler);
-                  }
-                };
-
-                window.addEventListener('scriptpilot:gm-response', handler);
-                window.dispatchEvent(new CustomEvent('scriptpilot:gm-call', {
-                  detail: { method: 'getValue', args: [key, defaultValue], requestId }
-                }));
+      // Use webextension-polyfill for chrome.scripting
+      if (browser.scripting) {
+        browser.tabs
+          .query({ active: true, currentWindow: true })
+          .then(tabs => {
+            if (tabs[0]?.id) {
+              return browser.scripting.executeScript({
+                target: { tabId: tabs[0].id },
+                files: ['src/content/gmapi-injection.js'],
               });
-            },
-
-            xmlHttpRequest: (options) => {
-              return new Promise((resolve, reject) => {
-                const requestId = Math.random().toString(36).substr(2, 9);
-                const handler = (event) => {
-                  if (event.detail.requestId === requestId) {
-                    if (event.detail.error) {
-                      reject(new Error(event.detail.error));
-                    } else {
-                      resolve(event.detail.result);
-                    }
-                    window.removeEventListener('scriptpilot:gm-response', handler);
-                  }
-                };
-
-                window.addEventListener('scriptpilot:gm-response', handler);
-                window.dispatchEvent(new CustomEvent('scriptpilot:gm-call', {
-                  detail: { method: 'xmlHttpRequest', args: [options], requestId }
-                }));
-              });
-            },
-
-            addStyle: (css) => {
-              const style = document.createElement('style');
-              style.textContent = css;
-              style.setAttribute('data-scriptpilot', 'true');
-              (document.head || document.documentElement).appendChild(style);
-              return style;
-            },
-
-            openInTab: (url, options) => {
-              window.dispatchEvent(new CustomEvent('scriptpilot:gm-call', {
-                detail: { method: 'openInTab', args: [url, options] }
-              }));
-            },
-
-            notification: (message, title) => {
-              window.dispatchEvent(new CustomEvent('scriptpilot:gm-call', {
-                detail: { method: 'notification', args: [message, title] }
-              }));
-            },
-
-            log: console.log.bind(console, '[UserScript]'),
-
-            info: {
-              script: {
-                name: 'Unknown',
-                version: '1.0.0'
-              },
-              version: '0.1.0'
             }
-          };
-
-          // Legacy GM functions
-          window.GM_setValue = GM_API.setValue;
-          window.GM_getValue = GM_API.getValue;
-          window.GM_xmlhttpRequest = GM_API.xmlHttpRequest;
-          window.GM_addStyle = GM_API.addStyle;
-          window.GM_openInTab = GM_API.openInTab;
-          window.GM_notification = GM_API.notification;
-          window.GM_log = GM_API.log;
-          window.GM_info = GM_API.info;
-
-          // Modern GM object
-          window.GM = GM_API;
-
-          console.log('[ScriptPilot] GM API injected');
-        })();
-      `;
-
-      (document.head || document.documentElement).appendChild(script);
-      script.remove();
+          })
+          .catch(error => {
+            console.warn(
+              '[ScriptPilot] Failed to inject via browser.scripting, using fallback:',
+              error
+            );
+            this.fallbackInjectGMAPI();
+          });
+      } else {
+        this.fallbackInjectGMAPI();
+      }
 
       // Listen for GM API calls from page context
       window.addEventListener('scriptpilot:gm-call', ((event: CustomEvent) => {
@@ -289,6 +209,26 @@ class ContentScript {
       }) as EventListener);
     } catch (error) {
       console.error('[ScriptPilot] Failed to inject GM API:', error);
+    }
+  }
+
+  private fallbackInjectGMAPI(): void {
+    try {
+      // Create a script element that loads the external file
+      const script = document.createElement('script');
+      script.src = browser.runtime.getURL('src/content/gmapi-injection.js');
+      script.onload = () => {
+        console.log('[ScriptPilot] GM API injected via fallback method');
+        script.remove();
+      };
+      script.onerror = () => {
+        console.error('[ScriptPilot] Failed to load GM API injection script');
+        script.remove();
+      };
+
+      (document.head || document.documentElement).appendChild(script);
+    } catch (error) {
+      console.error('[ScriptPilot] Fallback GM API injection failed:', error);
     }
   }
 
@@ -398,25 +338,60 @@ class ContentScript {
         return;
       }
 
-      // Create isolated execution context
-      const script = document.createElement('script');
-      script.textContent = `
-        (function() {
-          'use strict';
-          try {
-            ${scriptData.code}
-          } catch (error) {
-            console.error('[ScriptPilot] Script execution error:', error);
-          }
-        })();
-      `;
+      // Try to use browser.scripting API first (from webextension-polyfill)
+      if (browser.scripting) {
+        try {
+          const tabs = await browser.tabs.query({
+            active: true,
+            currentWindow: true,
+          });
+          if (tabs[0]?.id) {
+            await browser.scripting.executeScript({
+              target: { tabId: tabs[0].id },
+              func: (code: string) => {
+                try {
+                  // Create isolated execution context
+                  const script = document.createElement('script');
+                  script.textContent = `(function() { 'use strict'; ${code} })();`;
+                  (document.head || document.documentElement).appendChild(
+                    script
+                  );
+                  script.remove();
+                } catch (error) {
+                  console.error('[ScriptPilot] Script execution error:', error);
+                }
+              },
+              args: [scriptData.code],
+            });
 
-      (document.head || document.documentElement).appendChild(script);
-      script.remove();
+            this.injectedScripts.add(scriptData.id);
+            console.log(
+              `[ScriptPilot] Executed script via browser.scripting: ${scriptData.name || scriptData.id}`
+            );
+            return;
+          }
+        } catch (error) {
+          console.warn(
+            '[ScriptPilot] browser.scripting failed, using fallback:',
+            error
+          );
+        }
+      }
+
+      // Fallback to postMessage communication with injected GM API
+      window.dispatchEvent(
+        new CustomEvent('scriptpilot:execute-script', {
+          detail: {
+            id: scriptData.id,
+            code: scriptData.code,
+            name: scriptData.name,
+          },
+        })
+      );
 
       this.injectedScripts.add(scriptData.id);
       console.log(
-        `[ScriptPilot] Executed script: ${scriptData.name || scriptData.id}`
+        `[ScriptPilot] Executed script via fallback: ${scriptData.name || scriptData.id}`
       );
     } catch (error) {
       console.error('[ScriptPilot] Script execution failed:', error);

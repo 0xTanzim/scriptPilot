@@ -9,6 +9,9 @@ export { SettingsPanel } from './components/SettingsPanel';
 export { StatusIndicator } from './components/StatusIndicator';
 export { DevApp } from './DevApp';
 
+// Context providers
+export { ScriptProvider, useScriptContext } from './contexts/ScriptContext';
+
 // Re-export shadcn/ui components for external use
 export { Badge } from './components/ui/badge';
 export { Button } from './components/ui/button';

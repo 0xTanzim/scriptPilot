@@ -9,6 +9,7 @@ import { Toaster } from '../components/ui/sonner';
 import { Tabs } from '../components/ui/tabs';
 import { TooltipProvider } from '../components/ui/tooltip';
 import { useScriptContext } from '../contexts/ScriptContext';
+import { MonacoLoader } from './MonacoLoader';
 
 type ActiveView = 'list' | 'editor' | 'settings';
 
@@ -104,6 +105,7 @@ export const App: React.FC = () => {
 
   return (
     <TooltipProvider>
+      <MonacoLoader />
       <ScriptLayout mode={context.mode}>
         <ScriptHeader scriptStatus={context.scriptStatus} />
 

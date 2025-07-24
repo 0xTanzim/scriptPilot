@@ -1,5 +1,5 @@
 import type { Script } from '@scriptpilot/types';
-import { Plus, Search, Settings } from 'lucide-react';
+import { Code2, Lightbulb, Plus, Search, Settings, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { formatDate } from '../utils/dateUtils';
@@ -125,10 +125,54 @@ export function ScriptList({
       {/* Scripts Grid */}
       <div className='flex-1 overflow-auto'>
         {filteredScripts.length === 0 ? (
-          <div className='flex items-center justify-center h-full text-muted-foreground'>
-            {searchQuery
-              ? 'No scripts match your search'
-              : 'No scripts found. Create your first script!'}
+          <div className='flex flex-col items-center justify-center h-full py-12 px-6 text-center'>
+            <div className='w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-6'>
+              <Code2 className='h-8 w-8 text-white' />
+            </div>
+            <h3 className='text-lg font-semibold mb-2'>
+              {searchQuery ? 'No Scripts Found' : 'Welcome to ScriptPilot!'}
+            </h3>
+            <p className='text-muted-foreground mb-6 max-w-sm'>
+              {searchQuery
+                ? `No scripts match "${searchQuery}". Try adjusting your search or create a new script.`
+                : 'Get started by creating your first userscript. Write powerful scripts to enhance any website.'}
+            </p>
+            <div className='flex flex-col sm:flex-row gap-3'>
+              <Button
+                onClick={onCreateScript}
+                className='flex items-center gap-2'
+              >
+                <Plus className='h-4 w-4' />
+                Create Your First Script
+              </Button>
+              {searchQuery && (
+                <Button
+                  variant='outline'
+                  onClick={() => setSearchQuery('')}
+                  className='flex items-center gap-2'
+                >
+                  <X className='h-4 w-4' />
+                  Clear Search
+                </Button>
+              )}
+            </div>
+            {!searchQuery && (
+              <div className='mt-8 p-4 bg-muted/50 rounded-lg max-w-md'>
+                <h4 className='font-medium mb-2 flex items-center gap-2'>
+                  <Lightbulb className='h-4 w-4' />
+                  Quick Tips
+                </h4>
+                <ul className='text-sm text-muted-foreground space-y-1 text-left'>
+                  <li>
+                    • Install scripts from GreasyFork or other repositories
+                  </li>
+                  <li>• Write custom scripts with full TypeScript support</li>
+                  <li>
+                    • Debug your scripts with built-in DevTools integration
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
         ) : (
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>

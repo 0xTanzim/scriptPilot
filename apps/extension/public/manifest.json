@@ -54,9 +54,14 @@
 
   "options_page": "src/popup/popup.html",
 
-  "web_accessible_resources": [],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/content/gmapi-injection.js", "src/popup/popup-init.js"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ],
 
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; script-src-elem 'self' 'unsafe-inline';"
+    "extension_pages": "script-src 'self'; object-src 'self';"
   }
 }

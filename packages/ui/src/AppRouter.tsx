@@ -37,6 +37,25 @@ export const AppRouter: React.FC<AppRouterProps> = ({
   onOpenEditor,
   mode = 'popup',
 }) => {
+  // Set body classes based on mode
+  React.useEffect(() => {
+    const body = document.body;
+
+    // Remove loading classes and add mode classes
+    body.classList.remove('loading');
+
+    if (mode === 'popup') {
+      body.classList.add('popup-mode');
+      body.classList.remove('fullscreen-mode');
+    } else {
+      body.classList.add('fullscreen-mode');
+      body.classList.remove('popup-mode');
+    }
+
+    // Ensure Tailwind base classes are applied
+    body.classList.add('bg-background', 'text-foreground');
+  }, [mode]);
+
   const contextValue = {
     scripts,
     currentUrl,

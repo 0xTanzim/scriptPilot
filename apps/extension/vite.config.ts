@@ -2,6 +2,7 @@ import { crx } from '@crxjs/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 // Load manifest
 const manifest = {
@@ -60,16 +61,41 @@ const manifest = {
 
   options_page: 'src/popup/popup.html',
 
-  web_accessible_resources: [],
+  web_accessible_resources: [
+    {
+      resources: ['src/content/gmapi-injection.js', 'src/popup/popup-init.js'],
+      matches: ['http://*/*', 'https://*/*'],
+    },
+  ],
 
   content_security_policy: {
-    extension_pages:
-      "script-src 'self'; object-src 'self'; script-src-elem 'self' 'unsafe-inline';",
+    extension_pages: "script-src 'self'; object-src 'self';",
   },
 };
 
 export default defineConfig({
-  plugins: [react(), crx({ manifest })],
+  plugins: [
+    react(),
+    crx({ manifest }),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'src/content/gmapi-injection.js',
+          dest: 'src/content',
+        },
+        {
+          src: 'src/popup/popup-init.js',
+          dest: 'src/popup',
+        },
+      ],
+    }),
+  ],
+
+  css: {
+    postcss: {
+      plugins: [require('tailwindcss'), require('autoprefixer')],
+    },
+  },
 
   build: {
     rollupOptions: {
@@ -81,6 +107,8 @@ export default defineConfig({
     },
     outDir: 'dist',
     sourcemap: true,
+    // Ensure CSS is included in the build
+    cssCodeSplit: false,
   },
 
   resolve: {
@@ -108,6 +136,8 @@ export default defineConfig({
       '@scriptpilot/storage',
       '@scriptpilot/plugins',
       '@scriptpilot/types',
+      'monaco-editor',
+      '@monaco-editor/react',
     ],
   },
 

@@ -10,6 +10,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  css: {
+    postcss: './postcss.config.js',
+  },
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
@@ -24,8 +27,17 @@ export default defineConfig({
           react: 'React',
           'react-dom': 'ReactDOM',
         },
+        // Ensure CSS is extracted to a separate file
+        assetFileNames: assetInfo => {
+          if (assetInfo.name === 'style.css') {
+            return 'ui.css';
+          }
+          return assetInfo.name || '';
+        },
       },
     },
     sourcemap: true,
+    // Extract CSS to external file
+    cssCodeSplit: false,
   },
 });

@@ -3,8 +3,8 @@
  * Renders the main UI using React components from @scriptpilot/ui
  */
 import type { ExtensionMessage, Script } from '@scriptpilot/types';
-import { App } from '@scriptpilot/ui';
-import React from 'react';
+import { AppRouter } from '@scriptpilot/ui';
+import '@scriptpilot/ui/global.css';
 import { createRoot } from 'react-dom/client';
 import browser from 'webextension-polyfill';
 
@@ -68,23 +68,23 @@ class PopupController {
           })
         : [];
 
-      // Create app props
+      // Create app props for AppRouter
       const appProps = {
         scripts: scripts || [],
         currentUrl: currentTab?.url || '',
         currentTitle: currentTab?.title || '',
         scriptStatus: scriptStatus || [],
+        mode: isFullscreen ? ('fullscreen' as const) : ('popup' as const),
         onScriptSave: this.handleScriptSave.bind(this),
         onScriptDelete: this.handleScriptDelete.bind(this),
         onScriptToggle: this.handleScriptToggle.bind(this),
         onScriptInstall: this.handleScriptInstall.bind(this),
         onOpenSettings: this.handleOpenSettings.bind(this),
         onOpenEditor: this.handleOpenEditor.bind(this),
-        mode: isFullscreen ? ('fullscreen' as const) : ('popup' as const),
       };
 
-      // Render React app
-      this.root?.render(React.createElement(App, appProps));
+      // Render AppRouter which includes its own HashRouter setup
+      this.root?.render(<AppRouter {...appProps} />);
     } catch (error) {
       console.error('[ScriptPilot] Failed to render app:', error);
       this.showError(error as Error);
