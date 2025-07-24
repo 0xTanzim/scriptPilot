@@ -20,7 +20,7 @@ integration, plugin system, and TypeScript/WebAssembly support.
 
 This project uses a **Turborepo** monorepo structure:
 
-```
+```plaintext
 ScriptPilot/
 ├── apps/
 │   └── extension/          # WebExtension app
@@ -184,4 +184,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by the ScriptPilot team**
+### Made with ❤️ by the ScriptPilot team

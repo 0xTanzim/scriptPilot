@@ -9,6 +9,16 @@ build/
 .next/
 out/
 
+# Package builds (ignore all package dist folders)
+packages/*/dist/
+packages/*/dist
+packages/*/dist/*
+packages/**/dist/*
+packages/*/build/
+apps/*/dist/
+apps/*/build/
+
+
 # Development
 .turbo/
 .vite/
