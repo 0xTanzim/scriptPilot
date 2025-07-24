@@ -13,6 +13,9 @@ export * from './plugin';
 // Service interfaces
 export * from './services';
 
+// Settings and configuration
+export * from './settings';
+
 // WebExtension types
 export * from './extension';
 

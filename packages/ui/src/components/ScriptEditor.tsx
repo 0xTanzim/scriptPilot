@@ -20,7 +20,7 @@ interface ScriptEditorProps {
 /**
  * Advanced script editor with Monaco Editor and metadata management
  */
-export function ScriptEditor({ script, onSave, onClose }: ScriptEditorProps) {
+export function ScriptEditor({ script, onSave }: ScriptEditorProps) {
   const [code, setCode] = useState(script?.code || defaultScriptTemplate);
   const [metadata, setMetadata] = useState<ScriptMetadata>(
     script?.metadata || {
@@ -291,7 +291,7 @@ export function ScriptEditor({ script, onSave, onClose }: ScriptEditorProps) {
                     <Switch
                       id='noframes'
                       checked={metadata.noframes || false}
-                      onCheckedChange={checked =>
+                      onCheckedChange={(checked: boolean) =>
                         handleMetadataChange('noframes', checked)
                       }
                     />

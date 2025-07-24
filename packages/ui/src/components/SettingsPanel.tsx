@@ -126,7 +126,7 @@ export function SettingsPanel() {
                   </div>
                   <Switch
                     checked={settings.autoUpdate}
-                    onCheckedChange={checked =>
+                    onCheckedChange={(checked: boolean) =>
                       updateSetting('autoUpdate', checked)
                     }
                   />
@@ -163,7 +163,7 @@ export function SettingsPanel() {
                   </div>
                   <Switch
                     checked={settings.enableNotifications}
-                    onCheckedChange={checked =>
+                    onCheckedChange={(checked: boolean) =>
                       updateSetting('enableNotifications', checked)
                     }
                   />
@@ -211,7 +211,7 @@ export function SettingsPanel() {
                   </div>
                   <Switch
                     checked={settings.sandboxMode}
-                    onCheckedChange={checked =>
+                    onCheckedChange={(checked: boolean) =>
                       updateSetting('sandboxMode', checked)
                     }
                   />
@@ -226,7 +226,7 @@ export function SettingsPanel() {
                   </div>
                   <Switch
                     checked={settings.blockTracking}
-                    onCheckedChange={checked =>
+                    onCheckedChange={(checked: boolean) =>
                       updateSetting('blockTracking', checked)
                     }
                   />
@@ -276,7 +276,7 @@ export function SettingsPanel() {
                   </div>
                   <Switch
                     checked={settings.debugMode}
-                    onCheckedChange={checked =>
+                    onCheckedChange={(checked: boolean) =>
                       updateSetting('debugMode', checked)
                     }
                   />
@@ -291,7 +291,7 @@ export function SettingsPanel() {
                   </div>
                   <Switch
                     checked={settings.enableConsoleLogging}
-                    onCheckedChange={checked =>
+                    onCheckedChange={(checked: boolean) =>
                       updateSetting('enableConsoleLogging', checked)
                     }
                   />

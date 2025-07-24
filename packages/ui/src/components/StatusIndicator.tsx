@@ -20,7 +20,7 @@ export function StatusIndicator() {
     errorScripts: 0,
     executionsToday: 0,
   });
-  const [isActive, setIsActive] = useState(true);
+  const [isActive] = useState(true);
 
   // Mock data for development
   useEffect(() => {
