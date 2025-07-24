@@ -99,6 +99,21 @@ export interface LogEntry {
 
 export type ScriptStatus = 'enabled' | 'disabled' | 'error' | 'updating';
 
+export interface ScriptStatusInfo {
+  /** Script ID */
+  id: string;
+  /** Script name */
+  name: string;
+  /** Whether script is enabled */
+  enabled: boolean;
+  /** Script version */
+  version: string;
+  /** Last execution time */
+  lastExecution?: Date;
+  /** Execution count */
+  executionCount?: number;
+}
+
 export interface ScriptStats {
   /** Total scripts */
   totalScripts: number;

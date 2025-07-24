@@ -1,10 +1,10 @@
-import type { 
-  PluginContext, 
-  PluginConfig, 
-  PluginEventEmitter, 
-  PluginLogger 
-} from '@scriptpilot/types';
 import type { ScriptService } from '@scriptpilot/core';
+import type {
+  PluginConfig,
+  PluginContext,
+  PluginEventEmitter,
+  PluginLogger,
+} from '@scriptpilot/types';
 import { PluginEventEmitterImpl } from './PluginEventEmitter';
 import { PluginLoggerImpl } from './PluginLogger';
 
@@ -108,10 +108,13 @@ export class PluginContextImpl implements PluginContext {
   /**
    * Retrieve plugin data
    */
-  async getData<T = unknown>(key: string, defaultValue?: T): Promise<T | undefined> {
+  async getData<T = unknown>(
+    key: string,
+    defaultValue?: T
+  ): Promise<T | undefined> {
     if (this.storageService) {
       const scopedKey = this.createStorageKey(key);
-      return await this.storageService.get(scopedKey) ?? defaultValue;
+      return (await this.storageService.get(scopedKey)) ?? defaultValue;
     }
     return defaultValue;
   }

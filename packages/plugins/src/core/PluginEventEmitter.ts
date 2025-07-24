@@ -30,7 +30,7 @@ export class PluginEventEmitterImpl implements PluginEventEmitter {
       if (index > -1) {
         eventListeners.splice(index, 1);
       }
-      
+
       // Clean up empty event arrays
       if (eventListeners.length === 0) {
         this.listeners.delete(event);

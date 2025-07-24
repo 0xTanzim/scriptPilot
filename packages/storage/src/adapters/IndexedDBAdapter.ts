@@ -15,7 +15,7 @@ export class IndexedDBAdapter extends Dexie implements StorageAdapter {
 
   constructor(databaseName = 'ScriptPilotStorage') {
     super(databaseName);
-    
+
     this.version(1).stores({
       items: 'key, updatedAt',
     });
@@ -96,11 +96,11 @@ export class IndexedDBAdapter extends Dexie implements StorageAdapter {
     try {
       const items = await this.items.where('key').anyOf(keys).toArray();
       const result: Record<string, any> = {};
-      
+
       items.forEach(item => {
         result[item.key] = item.value;
       });
-      
+
       return result;
     } catch (error) {
       console.error('Failed to get batch from IndexedDB:', error);
@@ -113,12 +113,14 @@ export class IndexedDBAdapter extends Dexie implements StorageAdapter {
    */
   async setBatch(items: Record<string, any>): Promise<void> {
     try {
-      const storageItems: StorageItem[] = Object.entries(items).map(([key, value]) => ({
-        key,
-        value,
-        updatedAt: new Date(),
-      }));
-      
+      const storageItems: StorageItem[] = Object.entries(items).map(
+        ([key, value]) => ({
+          key,
+          value,
+          updatedAt: new Date(),
+        })
+      );
+
       await this.items.bulkPut(storageItems);
     } catch (error) {
       console.error('Failed to set batch in IndexedDB:', error);
@@ -145,7 +147,7 @@ export class IndexedDBAdapter extends Dexie implements StorageAdapter {
     try {
       // Get estimated database size
       let bytesInUse = 0;
-      
+
       if ('estimate' in navigator.storage) {
         const estimate = await navigator.storage.estimate();
         bytesInUse = estimate.usage || 0;
@@ -157,7 +159,7 @@ export class IndexedDBAdapter extends Dexie implements StorageAdapter {
 
       // Get quota (default to 50% of available storage)
       let quota = 50 * 1024 * 1024; // 50MB default
-      
+
       if ('estimate' in navigator.storage) {
         const estimate = await navigator.storage.estimate();
         quota = estimate.quota ? estimate.quota * 0.5 : quota;
@@ -208,7 +210,7 @@ export class IndexedDBAdapter extends Dexie implements StorageAdapter {
         items.sort((a, b) => {
           const aVal = a[options.sortBy!];
           const bVal = b[options.sortBy!];
-          
+
           if (aVal < bVal) return options.sortOrder === 'desc' ? 1 : -1;
           if (aVal > bVal) return options.sortOrder === 'desc' ? -1 : 1;
           return 0;
@@ -224,7 +226,7 @@ export class IndexedDBAdapter extends Dexie implements StorageAdapter {
       if (options.offset) {
         query = query.offset(options.offset);
       }
-      
+
       if (options.limit) {
         query = query.limit(options.limit);
       }
@@ -270,10 +272,7 @@ export class IndexedDBAdapter extends Dexie implements StorageAdapter {
    */
   async getUpdatedAfter(date: Date): Promise<StorageItem[]> {
     try {
-      return await this.items
-        .where('updatedAt')
-        .above(date)
-        .toArray();
+      return await this.items.where('updatedAt').above(date).toArray();
     } catch (error) {
       console.error('Failed to get updated items:', error);
       return [];
@@ -287,14 +286,14 @@ export class IndexedDBAdapter extends Dexie implements StorageAdapter {
     try {
       const items = await this.items.toArray();
       const result: Record<string, any> = {};
-      
+
       items.forEach(item => {
         result[item.key] = {
           value: item.value,
           updatedAt: item.updatedAt,
         };
       });
-      
+
       return result;
     } catch (error) {
       console.error('Failed to export data:', error);
@@ -305,14 +304,18 @@ export class IndexedDBAdapter extends Dexie implements StorageAdapter {
   /**
    * Import data (overwrites existing)
    */
-  async importData(data: Record<string, { value: any; updatedAt?: Date }>): Promise<void> {
+  async importData(
+    data: Record<string, { value: any; updatedAt?: Date }>
+  ): Promise<void> {
     try {
-      const storageItems: StorageItem[] = Object.entries(data).map(([key, item]) => ({
-        key,
-        value: item.value,
-        updatedAt: item.updatedAt || new Date(),
-      }));
-      
+      const storageItems: StorageItem[] = Object.entries(data).map(
+        ([key, item]) => ({
+          key,
+          value: item.value,
+          updatedAt: item.updatedAt || new Date(),
+        })
+      );
+
       await this.items.bulkPut(storageItems);
     } catch (error) {
       console.error('Failed to import data:', error);
@@ -324,7 +327,9 @@ export class IndexedDBAdapter extends Dexie implements StorageAdapter {
 /**
  * Factory function to create IndexedDB adapter
  */
-export function createIndexedDBAdapter(databaseName?: string): IndexedDBAdapter {
+export function createIndexedDBAdapter(
+  databaseName?: string
+): IndexedDBAdapter {
   return new IndexedDBAdapter(databaseName);
 }
 
@@ -343,15 +348,20 @@ export async function migrateIndexedDB(
     await fromAdapter.open();
     await toAdapter.open();
 
-    const keysToMigrate = keys || await fromAdapter.getAllKeys();
+    const keysToMigrate = keys || (await fromAdapter.getAllKeys());
     const data = await fromAdapter.getBatch(keysToMigrate);
-    
+
     await toAdapter.setBatch(data);
     await fromAdapter.removeBatch(keysToMigrate);
 
-    console.log(`Migrated ${keysToMigrate.length} items from ${fromDbName} to ${toDbName}`);
+    console.log(
+      `Migrated ${keysToMigrate.length} items from ${fromDbName} to ${toDbName}`
+    );
   } catch (error) {
-    console.error(`Failed to migrate from ${fromDbName} to ${toDbName}:`, error);
+    console.error(
+      `Failed to migrate from ${fromDbName} to ${toDbName}:`,
+      error
+    );
     throw error;
   } finally {
     await fromAdapter.close();

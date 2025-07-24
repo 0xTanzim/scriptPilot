@@ -14,7 +14,90 @@ export * from './plugin';
 export * from './services';
 
 // Settings and configuration
-export * from './settings';
+export type {
+  BackupSettings,
+  DeveloperSettings,
+  ExecutionSettings,
+  GeneralSettings,
+  SecuritySettings,
+  Settings,
+  SettingsChangeEvent,
+  SettingsMigration,
+  SettingsSchema,
+  SyncSettings,
+  UISettings,
+} from './settings';
+
+// DEFAULT_SETTINGS constant - exported directly to avoid compilation issues
+export const DEFAULT_SETTINGS = {
+  general: {
+    enabled: true,
+    autoUpdateCheck: true,
+    updateCheckInterval: 24,
+    showInstallNotifications: true,
+    defaultLanguage: 'javascript' as const,
+    maxConcurrentExecutions: 10,
+  },
+  execution: {
+    defaultTimeout: 30000,
+    enableCaching: true,
+    cacheDuration: 60,
+    debugMode: false,
+    logExecution: true,
+    maxLogEntries: 100,
+    enableSourceMaps: true,
+    strictMode: false,
+  },
+  ui: {
+    theme: 'auto' as const,
+    locale: 'en',
+    showLineNumbers: true,
+    editorFontFamily: 'JetBrains Mono, Fira Code, monospace',
+    editorFontSize: 14,
+    enableCodeFolding: true,
+    tabSize: 2,
+    insertSpaces: true,
+    enableMinimap: true,
+    wordWrap: 'on' as const,
+  },
+  security: {
+    confirmDangerousAPIs: true,
+    blockUntrustedSources: false,
+    trustedDomains: [],
+    enableSandboxing: true,
+    cspEnforcement: 'moderate' as const,
+    blockEval: false,
+    networkFiltering: false,
+    maxScriptSize: 1024 * 1024, // 1MB
+  },
+  sync: {
+    enabled: false,
+    provider: 'chrome' as const,
+    autoSyncInterval: 15,
+    syncScripts: true,
+    syncSettings: true,
+    syncLogs: false,
+    conflictResolution: 'prompt' as const,
+    encryption: true,
+  },
+  backup: {
+    autoBackup: true,
+    backupInterval: 24,
+    maxBackups: 10,
+    includeLogs: false,
+    compression: true,
+    location: 'local' as const,
+  },
+  developer: {
+    enabled: false,
+    showDebugConsole: false,
+    enablePerfMonitoring: false,
+    hotReload: false,
+    experimentalFeatures: false,
+    memoryProfiling: false,
+    generateSourceMaps: true,
+  },
+};
 
 // WebExtension types
 export * from './extension';

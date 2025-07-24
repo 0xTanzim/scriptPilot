@@ -1,12 +1,12 @@
-import type { 
-  Plugin, 
-  PluginContext, 
-  PluginInfo, 
-  PluginManifest, 
-  PluginStatus,
-  PluginConfig
-} from '@scriptpilot/types';
 import type { ScriptService } from '@scriptpilot/core';
+import type {
+  Plugin,
+  PluginConfig,
+  PluginContext,
+  PluginInfo,
+  PluginManifest,
+  PluginStatus,
+} from '@scriptpilot/types';
 import { PluginContextImpl } from './PluginContext';
 
 /**
@@ -44,7 +44,7 @@ export class PluginRegistry {
       settings: {},
       enabled: true,
       installedAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     // Create plugin info
@@ -53,7 +53,7 @@ export class PluginRegistry {
       status: 'installed',
       config,
       path: '', // TODO: Set actual plugin path
-      error: undefined
+      error: undefined,
     };
 
     // Create plugin context
@@ -79,12 +79,15 @@ export class PluginRegistry {
       console.log(`Plugin ${pluginName} registered successfully`);
     } catch (error) {
       pluginInfo.status = 'error';
-      pluginInfo.error = error instanceof Error ? error.message : 'Unknown error';
-      
+      pluginInfo.error =
+        error instanceof Error ? error.message : 'Unknown error';
+
       // Still store the plugin info for debugging
       this.plugins.set(pluginName, pluginInfo);
-      
-      throw new Error(`Failed to register plugin ${pluginName}: ${pluginInfo.error}`);
+
+      throw new Error(
+        `Failed to register plugin ${pluginName}: ${pluginInfo.error}`
+      );
     }
   }
 
@@ -113,8 +116,11 @@ export class PluginRegistry {
       console.log(`Plugin ${pluginName} unregistered successfully`);
     } catch (error) {
       pluginInfo.status = 'error';
-      pluginInfo.error = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Failed to unregister plugin ${pluginName}: ${pluginInfo.error}`);
+      pluginInfo.error =
+        error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(
+        `Failed to unregister plugin ${pluginName}: ${pluginInfo.error}`
+      );
     }
   }
 
@@ -139,12 +145,15 @@ export class PluginRegistry {
       }
       pluginInfo.status = 'enabled';
       pluginInfo.error = undefined;
-      
+
       console.log(`Plugin ${pluginName} enabled`);
     } catch (error) {
       pluginInfo.status = 'error';
-      pluginInfo.error = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Failed to enable plugin ${pluginName}: ${pluginInfo.error}`);
+      pluginInfo.error =
+        error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(
+        `Failed to enable plugin ${pluginName}: ${pluginInfo.error}`
+      );
     }
   }
 
@@ -169,12 +178,15 @@ export class PluginRegistry {
       }
       pluginInfo.status = 'disabled';
       pluginInfo.error = undefined;
-      
+
       console.log(`Plugin ${pluginName} disabled`);
     } catch (error) {
       pluginInfo.status = 'error';
-      pluginInfo.error = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Failed to disable plugin ${pluginName}: ${pluginInfo.error}`);
+      pluginInfo.error =
+        error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(
+        `Failed to disable plugin ${pluginName}: ${pluginInfo.error}`
+      );
     }
   }
 
@@ -232,7 +244,10 @@ export class PluginRegistry {
   /**
    * Update plugin configuration
    */
-  async updateConfig(pluginName: string, updates: Partial<PluginConfig>): Promise<void> {
+  async updateConfig(
+    pluginName: string,
+    updates: Partial<PluginConfig>
+  ): Promise<void> {
     const pluginInfo = this.plugins.get(pluginName);
     const context = this.contexts.get(pluginName);
 
@@ -248,7 +263,10 @@ export class PluginRegistry {
 
     // Save to storage if available
     if (this.storageService) {
-      await this.storageService.setData(`plugin:${pluginName}:config`, pluginInfo.config);
+      await this.storageService.setData(
+        `plugin:${pluginName}:config`,
+        pluginInfo.config
+      );
     }
   }
 
@@ -262,7 +280,7 @@ export class PluginRegistry {
     error: number;
   } {
     const plugins = this.getAllPlugins();
-    
+
     return {
       total: plugins.length,
       enabled: plugins.filter(p => p.status === 'enabled').length,
@@ -299,7 +317,7 @@ export class PluginRegistry {
    */
   async dispose(): Promise<void> {
     const pluginNames = Array.from(this.plugins.keys());
-    
+
     for (const pluginName of pluginNames) {
       try {
         await this.unregister(pluginName);

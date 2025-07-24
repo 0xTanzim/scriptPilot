@@ -61,7 +61,10 @@ export function App() {
         </header>
 
         {/* Navigation */}
-        <Tabs value={activeView} onValueChange={setActiveView as any}>
+        <Tabs
+          value={activeView}
+          onValueChange={(value: string) => setActiveView(value as ActiveView)}
+        >
           <div className='border-b border-border px-4'>
             <TabsList className='h-12'>
               <TabsTrigger value='list' className='flex items-center gap-2'>

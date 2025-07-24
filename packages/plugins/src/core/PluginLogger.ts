@@ -60,13 +60,20 @@ export class PluginLoggerImpl implements PluginLogger {
    * Create a child logger with a prefix
    */
   child(prefix: string): PluginLogger {
-    return new PluginLoggerImpl(`${this.pluginName}:${prefix}`, this.debugEnabled);
+    return new PluginLoggerImpl(
+      `${this.pluginName}:${prefix}`,
+      this.debugEnabled
+    );
   }
 
   /**
    * Log with custom level
    */
-  log(level: 'info' | 'warn' | 'error' | 'debug', message: string, ...args: unknown[]): void {
+  log(
+    level: 'info' | 'warn' | 'error' | 'debug',
+    message: string,
+    ...args: unknown[]
+  ): void {
     switch (level) {
       case 'info':
         this.info(message, ...args);

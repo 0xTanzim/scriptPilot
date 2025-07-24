@@ -44,11 +44,26 @@ export class PluginSandbox {
       timeout: 30000, // 30 seconds
       maxMemory: 50 * 1024 * 1024, // 50MB
       allowedGlobals: [
-        'console', 'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval',
-        'Promise', 'Date', 'Math', 'JSON', 'Object', 'Array', 'String', 
-        'Number', 'Boolean', 'RegExp', 'Error', 'TypeError', 'ReferenceError'
+        'console',
+        'setTimeout',
+        'clearTimeout',
+        'setInterval',
+        'clearInterval',
+        'Promise',
+        'Date',
+        'Math',
+        'JSON',
+        'Object',
+        'Array',
+        'String',
+        'Number',
+        'Boolean',
+        'RegExp',
+        'Error',
+        'TypeError',
+        'ReferenceError',
       ],
-      ...config
+      ...config,
     };
   }
 
@@ -68,11 +83,18 @@ export class PluginSandbox {
       // Get the method
       const method = plugin[methodName];
       if (typeof method !== 'function') {
-        throw new Error(`Plugin method ${String(methodName)} is not a function`);
+        throw new Error(
+          `Plugin method ${String(methodName)} is not a function`
+        );
       }
 
       // Create execution promise
-      const executionPromise = this.createExecutionPromise(method, plugin, context, args);
+      const executionPromise = this.createExecutionPromise(
+        method,
+        plugin,
+        context,
+        args
+      );
 
       // Apply timeout
       const timeoutPromise = this.createTimeoutPromise();
@@ -92,7 +114,7 @@ export class PluginSandbox {
         success: true,
         result: result as T,
         executionTime,
-        memoryUsage
+        memoryUsage,
       };
     } catch (error) {
       const executionTime = Date.now() - startTime;
@@ -102,7 +124,7 @@ export class PluginSandbox {
         success: false,
         error: error instanceof Error ? error : new Error(String(error)),
         executionTime,
-        memoryUsage
+        memoryUsage,
       };
     }
   }
@@ -121,12 +143,15 @@ export class PluginSandbox {
     try {
       // Create safe execution environment
       const safeGlobals = this.createSafeGlobals(globals);
-      
+
       // Create isolated function
       const isolatedFunction = this.createIsolatedFunction(code, safeGlobals);
 
       // Execute with timeout
-      const executionPromise = this.executeIsolatedFunction(isolatedFunction, context);
+      const executionPromise = this.executeIsolatedFunction(
+        isolatedFunction,
+        context
+      );
       const timeoutPromise = this.createTimeoutPromise();
 
       const result = await Promise.race([executionPromise, timeoutPromise]);
@@ -138,7 +163,7 @@ export class PluginSandbox {
         success: true,
         result,
         executionTime,
-        memoryUsage
+        memoryUsage,
       };
     } catch (error) {
       const executionTime = Date.now() - startTime;
@@ -148,7 +173,7 @@ export class PluginSandbox {
         success: false,
         error: error instanceof Error ? error : new Error(String(error)),
         executionTime,
-        memoryUsage
+        memoryUsage,
       };
     }
   }
@@ -162,20 +187,20 @@ export class PluginSandbox {
   ): Promise<SandboxResult<T>> {
     const startTime = Date.now();
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       try {
         // Create worker code
         const workerCode = `
           self.onmessage = function(e) {
             try {
               const { code, data } = e.data;
-              
+
               // Create execution function
               const execute = new Function('data', code);
-              
+
               // Execute code
               const result = execute(data);
-              
+
               // Send result
               self.postMessage({
                 success: true,
@@ -205,12 +230,12 @@ export class PluginSandbox {
             success: false,
             error: new Error('Worker execution timeout'),
             executionTime: Date.now() - startTime,
-            memoryUsage: 0
+            memoryUsage: 0,
           });
         }, this.config.timeout);
 
         // Handle worker response
-        worker.onmessage = (event) => {
+        worker.onmessage = event => {
           clearTimeout(timeout);
           worker.terminate();
           URL.revokeObjectURL(blob.toString());
@@ -223,19 +248,19 @@ export class PluginSandbox {
               success: true,
               result,
               executionTime,
-              memoryUsage: 0 // Can't measure worker memory from main thread
+              memoryUsage: 0, // Can't measure worker memory from main thread
             });
           } else {
             resolve({
               success: false,
               error: new Error(error.message),
               executionTime,
-              memoryUsage: 0
+              memoryUsage: 0,
             });
           }
         };
 
-        worker.onerror = (error) => {
+        worker.onerror = error => {
           clearTimeout(timeout);
           worker.terminate();
           URL.revokeObjectURL(blob.toString());
@@ -244,7 +269,7 @@ export class PluginSandbox {
             success: false,
             error: new Error(`Worker error: ${error.message}`),
             executionTime: Date.now() - startTime,
-            memoryUsage: 0
+            memoryUsage: 0,
           });
         };
 
@@ -255,7 +280,7 @@ export class PluginSandbox {
           success: false,
           error: error instanceof Error ? error : new Error(String(error)),
           executionTime: Date.now() - startTime,
-          memoryUsage: 0
+          memoryUsage: 0,
         });
       }
     });
@@ -280,7 +305,7 @@ export class PluginSandbox {
         { pattern: /\.call\s*\(\s*this/, message: 'Uses suspicious .call()' },
         { pattern: /window\[/, message: 'Accesses window object dynamically' },
         { pattern: /global\[/, message: 'Accesses global object dynamically' },
-        { pattern: /process\./, message: 'Accesses Node.js process object' }
+        { pattern: /process\./, message: 'Accesses Node.js process object' },
       ];
 
       for (const { pattern, message } of dangerousPatterns) {
@@ -299,12 +324,12 @@ export class PluginSandbox {
 
       return {
         safe: issues.length === 0,
-        issues
+        issues,
       };
     } catch (error) {
       return {
         safe: false,
-        issues: [`Failed to analyze plugin: ${error}`]
+        issues: [`Failed to analyze plugin: ${error}`],
       };
     }
   }
@@ -322,10 +347,10 @@ export class PluginSandbox {
       try {
         // Bind method to plugin context
         const boundMethod = method.bind(plugin);
-        
+
         // Execute method
         const result = boundMethod(context, ...args);
-        
+
         // Handle promise results
         if (result && typeof result.then === 'function') {
           result.then(resolve).catch(reject);
@@ -344,7 +369,9 @@ export class PluginSandbox {
   private createTimeoutPromise(): Promise<never> {
     return new Promise((_, reject) => {
       setTimeout(() => {
-        reject(new Error(`Plugin execution timeout after ${this.config.timeout}ms`));
+        reject(
+          new Error(`Plugin execution timeout after ${this.config.timeout}ms`)
+        );
       }, this.config.timeout);
     });
   }
@@ -352,7 +379,9 @@ export class PluginSandbox {
   /**
    * Create safe globals object
    */
-  private createSafeGlobals(customGlobals: Record<string, any>): Record<string, any> {
+  private createSafeGlobals(
+    customGlobals: Record<string, any>
+  ): Record<string, any> {
     const safeGlobals: Record<string, any> = {};
 
     // Add allowed globals
@@ -381,21 +410,30 @@ export class PluginSandbox {
   /**
    * Create isolated function from code
    */
-  private createIsolatedFunction(code: string, globals: Record<string, any>): Function {
+  private createIsolatedFunction(
+    code: string,
+    globals: Record<string, any>
+  ): Function {
     const globalNames = Object.keys(globals);
     const globalValues = Object.values(globals);
 
     // Create function with controlled scope
-    return new Function(...globalNames, `
+    return new Function(
+      ...globalNames,
+      `
       "use strict";
       ${code}
-    `).bind(null, ...globalValues);
+    `
+    ).bind(null, ...globalValues);
   }
 
   /**
    * Execute isolated function
    */
-  private async executeIsolatedFunction(fn: Function, context: PluginContext): Promise<any> {
+  private async executeIsolatedFunction(
+    fn: Function,
+    context: PluginContext
+  ): Promise<any> {
     return fn(context);
   }
 
@@ -418,7 +456,7 @@ export class PluginSandbox {
       },
       querySelectorAll: () => {
         throw new Error('DOM queries not allowed in sandbox');
-      }
+      },
     };
   }
 

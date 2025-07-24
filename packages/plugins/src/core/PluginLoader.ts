@@ -4,18 +4,19 @@ import type { Plugin, PluginManifest } from '@scriptpilot/types';
  * Plugin loading and validation utilities
  */
 export class PluginLoader {
-  
   /**
    * Load plugin from URL
    */
-  async loadFromUrl(url: string): Promise<{ plugin: Plugin; manifest: PluginManifest }> {
+  async loadFromUrl(
+    url: string
+  ): Promise<{ plugin: Plugin; manifest: PluginManifest }> {
     try {
       // Fetch the plugin code
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to fetch plugin: ${response.statusText}`);
       }
-      
+
       const code = await response.text();
       return this.loadFromCode(code, url);
     } catch (error) {
@@ -26,17 +27,20 @@ export class PluginLoader {
   /**
    * Load plugin from code string
    */
-  async loadFromCode(code: string, source = 'unknown'): Promise<{ plugin: Plugin; manifest: PluginManifest }> {
+  async loadFromCode(
+    code: string,
+    source = 'unknown'
+  ): Promise<{ plugin: Plugin; manifest: PluginManifest }> {
     try {
       // Parse manifest from code comments (similar to userscript headers)
       const manifest = this.parseManifest(code);
-      
+
       // Create a safe execution environment
       const plugin = this.executePluginCode(code, source);
-      
+
       // Validate the plugin
       this.validatePlugin(plugin, manifest);
-      
+
       return { plugin, manifest };
     } catch (error) {
       throw new Error(`Failed to load plugin from code: ${error}`);
@@ -46,7 +50,9 @@ export class PluginLoader {
   /**
    * Load plugin from file (for development/testing)
    */
-  async loadFromFile(file: File): Promise<{ plugin: Plugin; manifest: PluginManifest }> {
+  async loadFromFile(
+    file: File
+  ): Promise<{ plugin: Plugin; manifest: PluginManifest }> {
     try {
       const code = await file.text();
       return this.loadFromCode(code, `file://${file.name}`);
@@ -60,23 +66,25 @@ export class PluginLoader {
    */
   private parseManifest(code: string): PluginManifest {
     const manifest: Partial<PluginManifest> = {};
-    
+
     // Match multiline comments with @-directives
     const headerMatch = code.match(/\/\*\*([\s\S]*?)\*\//);
     if (!headerMatch) {
-      throw new Error('Plugin manifest not found. Must be in /** */ comment block.');
+      throw new Error(
+        'Plugin manifest not found. Must be in /** */ comment block.'
+      );
     }
-    
+
     const headerContent = headerMatch[1];
-    
+
     // Parse @-directives
     const directives = headerContent.match(/@(\w+)\s+(.+)/g) || [];
-    
+
     for (const directive of directives) {
       const match = directive.match(/@(\w+)\s+(.+)/);
       if (match) {
         const [, key, value] = match;
-        
+
         switch (key.toLowerCase()) {
           case 'name':
             manifest.name = value.trim();
@@ -107,7 +115,7 @@ export class PluginLoader {
         }
       }
     }
-    
+
     // Validate required fields
     if (!manifest.name) {
       throw new Error('Plugin manifest missing required field: name');
@@ -115,11 +123,11 @@ export class PluginLoader {
     if (!manifest.version) {
       throw new Error('Plugin manifest missing required field: version');
     }
-    
+
     // Set defaults
     manifest.main = manifest.main || 'plugin';
     manifest.permissions = manifest.permissions || {};
-    
+
     return manifest as PluginManifest;
   }
 
@@ -130,12 +138,12 @@ export class PluginLoader {
     try {
       // Create a safe execution context
       const context = this.createExecutionContext();
-      
+
       // Wrap the code in a function to create scope
       const wrappedCode = `
         (function(exports, require, module, __filename, __dirname) {
           ${code}
-          
+
           // The plugin should export itself
           if (typeof exports.default === 'object') {
             return exports.default;
@@ -146,25 +154,27 @@ export class PluginLoader {
           }
         })
       `;
-      
+
       // Execute the wrapped code
       const pluginFactory = eval(wrappedCode);
-      
+
       // Create mock module system
       const mockModule = { exports: {} };
       const mockRequire = (id: string) => {
-        throw new Error(`Plugin attempted to require '${id}' - external dependencies not supported yet`);
+        throw new Error(
+          `Plugin attempted to require '${id}' - external dependencies not supported yet`
+        );
       };
-      
+
       // Execute with mock environment
       const plugin = pluginFactory(
         mockModule.exports, // exports
-        mockRequire,        // require
-        mockModule,         // module
-        source,             // __filename
-        '/'                 // __dirname
+        mockRequire, // require
+        mockModule, // module
+        source, // __filename
+        '/' // __dirname
       );
-      
+
       return plugin;
     } catch (error) {
       throw new Error(`Failed to execute plugin code: ${error}`);
@@ -206,28 +216,28 @@ export class PluginLoader {
     if (!plugin || typeof plugin !== 'object') {
       throw new Error('Plugin must be an object');
     }
-    
+
     if (!plugin.name || typeof plugin.name !== 'string') {
       throw new Error('Plugin must have a name property');
     }
-    
+
     if (!plugin.version || typeof plugin.version !== 'string') {
       throw new Error('Plugin must have a version property');
     }
-    
+
     if (!plugin.register || typeof plugin.register !== 'function') {
       throw new Error('Plugin must have a register function');
     }
-    
+
     // Validate manifest matches plugin
     if (plugin.name !== manifest.name) {
       throw new Error('Plugin name does not match manifest');
     }
-    
+
     if (plugin.version !== manifest.version) {
       throw new Error('Plugin version does not match manifest');
     }
-    
+
     // Check for dangerous patterns in the plugin
     this.securityCheck(plugin);
   }
@@ -237,7 +247,7 @@ export class PluginLoader {
    */
   private securityCheck(plugin: Plugin): void {
     const pluginStr = JSON.stringify(plugin);
-    
+
     // Check for potentially dangerous patterns
     const dangerousPatterns = [
       /eval\s*\(/,
@@ -248,10 +258,12 @@ export class PluginLoader {
       /\.call\s*\(\s*this/,
       /\.apply\s*\(\s*this/,
     ];
-    
+
     for (const pattern of dangerousPatterns) {
       if (pattern.test(pluginStr)) {
-        console.warn(`Plugin ${plugin.name} contains potentially dangerous pattern: ${pattern}`);
+        console.warn(
+          `Plugin ${plugin.name} contains potentially dangerous pattern: ${pattern}`
+        );
       }
     }
   }
@@ -263,16 +275,16 @@ export class PluginLoader {
     try {
       // Basic checks
       if (!code || typeof code !== 'string') return false;
-      
+
       // Must have manifest comment
       if (!code.includes('/**') || !code.includes('*/')) return false;
-      
+
       // Must have @name directive
       if (!code.includes('@name')) return false;
-      
+
       // Must have register function
       if (!code.includes('register')) return false;
-      
+
       return true;
     } catch {
       return false;
@@ -286,22 +298,22 @@ export class PluginLoader {
     try {
       const headerMatch = code.match(/\/\*\*([\s\S]*?)\*\//);
       if (!headerMatch) return null;
-      
+
       const headerContent = headerMatch[1];
       const info: Partial<PluginManifest> = {};
-      
+
       const nameMatch = headerContent.match(/@name\s+(.+)/);
       if (nameMatch) info.name = nameMatch[1].trim();
-      
+
       const versionMatch = headerContent.match(/@version\s+(.+)/);
       if (versionMatch) info.version = versionMatch[1].trim();
-      
+
       const descMatch = headerContent.match(/@description\s+(.+)/);
       if (descMatch) info.description = descMatch[1].trim();
-      
+
       const authorMatch = headerContent.match(/@author\s+(.+)/);
       if (authorMatch) info.author = authorMatch[1].trim();
-      
+
       return info;
     } catch {
       return null;

@@ -179,7 +179,10 @@ export interface StorageStats {
 /**
  * Migration function type
  */
-export type MigrationFunction = (oldVersion: number, newVersion: number) => Promise<void>;
+export type MigrationFunction = (
+  oldVersion: number,
+  newVersion: number
+) => Promise<void>;
 
 /**
  * Storage error types

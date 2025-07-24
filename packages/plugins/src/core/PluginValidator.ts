@@ -1,4 +1,8 @@
-import type { Plugin, PluginManifest, PluginPermissions } from '@scriptpilot/types';
+import type {
+  Plugin,
+  PluginManifest,
+  PluginPermissions,
+} from '@scriptpilot/types';
 
 /**
  * Validation result interface
@@ -46,19 +50,23 @@ export class PluginValidator {
       allowNetworkAccess: true,
       allowFileAccess: false,
       maxSize: 1024 * 1024, // 1MB
-      ...config
+      ...config,
     };
   }
 
   /**
    * Validate a plugin and its manifest
    */
-  validate(plugin: Plugin, manifest: PluginManifest, code?: string): ValidationResult {
+  validate(
+    plugin: Plugin,
+    manifest: PluginManifest,
+    code?: string
+  ): ValidationResult {
     const result: ValidationResult = {
       isValid: true,
       errors: [],
       warnings: [],
-      securityIssues: []
+      securityIssues: [],
     };
 
     // Validate manifest
@@ -87,7 +95,10 @@ export class PluginValidator {
   /**
    * Validate plugin manifest
    */
-  private validateManifest(manifest: PluginManifest, result: ValidationResult): void {
+  private validateManifest(
+    manifest: PluginManifest,
+    result: ValidationResult
+  ): void {
     // Required fields
     if (!manifest.name || typeof manifest.name !== 'string') {
       result.errors.push('Manifest missing required field: name');
@@ -100,7 +111,9 @@ export class PluginValidator {
     if (!manifest.version || typeof manifest.version !== 'string') {
       result.errors.push('Manifest missing required field: version');
     } else if (!this.isValidVersion(manifest.version)) {
-      result.errors.push('Invalid version format. Use semantic versioning (e.g., 1.0.0)');
+      result.errors.push(
+        'Invalid version format. Use semantic versioning (e.g., 1.0.0)'
+      );
     }
 
     // Optional but recommended fields
@@ -129,17 +142,24 @@ export class PluginValidator {
     }
 
     // Validate manifest version (if supported in future)
-    if (this.config.requiredManifestVersion && 
-        'manifestVersion' in manifest && 
-        (manifest as any).manifestVersion !== this.config.requiredManifestVersion) {
-      result.errors.push(`Manifest version must be ${this.config.requiredManifestVersion}`);
+    if (
+      this.config.requiredManifestVersion &&
+      'manifestVersion' in manifest &&
+      (manifest as any).manifestVersion !== this.config.requiredManifestVersion
+    ) {
+      result.errors.push(
+        `Manifest version must be ${this.config.requiredManifestVersion}`
+      );
     }
   }
 
   /**
    * Validate plugin structure
    */
-  private validatePluginStructure(plugin: Plugin, result: ValidationResult): void {
+  private validatePluginStructure(
+    plugin: Plugin,
+    result: ValidationResult
+  ): void {
     if (!plugin || typeof plugin !== 'object') {
       result.errors.push('Plugin must be an object');
       return;
@@ -168,22 +188,44 @@ export class PluginValidator {
     }
 
     // Check for unexpected properties
-    const allowedProperties = ['name', 'version', 'register', 'unregister', 'enable', 'disable', 'config'];
+    const allowedProperties = [
+      'name',
+      'version',
+      'register',
+      'unregister',
+      'enable',
+      'disable',
+      'config',
+    ];
     const pluginProperties = Object.keys(plugin);
-    const unexpectedProps = pluginProperties.filter(prop => !allowedProperties.includes(prop));
-    
+    const unexpectedProps = pluginProperties.filter(
+      prop => !allowedProperties.includes(prop)
+    );
+
     if (unexpectedProps.length > 0) {
-      result.warnings.push(`Plugin has unexpected properties: ${unexpectedProps.join(', ')}`);
+      result.warnings.push(
+        `Plugin has unexpected properties: ${unexpectedProps.join(', ')}`
+      );
     }
   }
 
   /**
    * Validate plugin permissions
    */
-  private validatePermissions(permissions: PluginPermissions, result: ValidationResult): void {
+  private validatePermissions(
+    permissions: PluginPermissions,
+    result: ValidationResult
+  ): void {
     const allowedPermissions = [
-      'storage', 'network', 'tabs', 'scripting', 'cookies', 
-      'history', 'downloads', 'notifications', 'fileSystem'
+      'storage',
+      'network',
+      'tabs',
+      'scripting',
+      'cookies',
+      'history',
+      'downloads',
+      'notifications',
+      'fileSystem',
     ];
 
     for (const [permission, enabled] of Object.entries(permissions)) {
@@ -202,17 +244,23 @@ export class PluginValidator {
         switch (permission) {
           case 'network':
             if (!this.config.allowNetworkAccess) {
-              result.securityIssues.push('Network access not allowed in current security level');
+              result.securityIssues.push(
+                'Network access not allowed in current security level'
+              );
             }
             break;
           case 'fileSystem':
             if (!this.config.allowFileAccess) {
-              result.securityIssues.push('File system access not allowed in current security level');
+              result.securityIssues.push(
+                'File system access not allowed in current security level'
+              );
             }
             break;
           case 'scripting':
             if (this.config.securityLevel === 'strict') {
-              result.securityIssues.push('Script injection not allowed in strict security mode');
+              result.securityIssues.push(
+                'Script injection not allowed in strict security mode'
+              );
             }
             break;
         }
@@ -220,28 +268,40 @@ export class PluginValidator {
     }
 
     // Warn about sensitive permissions
-    const sensitivePermissions = ['scripting', 'fileSystem', 'cookies', 'history'];
-    const enabledSensitivePerms = sensitivePermissions.filter(perm => 
-      perm in permissions && (permissions as any)[perm]
+    const sensitivePermissions = [
+      'scripting',
+      'fileSystem',
+      'cookies',
+      'history',
+    ];
+    const enabledSensitivePerms = sensitivePermissions.filter(
+      perm => perm in permissions && (permissions as any)[perm]
     );
-    
+
     if (enabledSensitivePerms.length > 0) {
-      result.warnings.push(`Plugin requests sensitive permissions: ${enabledSensitivePerms.join(', ')}`);
+      result.warnings.push(
+        `Plugin requests sensitive permissions: ${enabledSensitivePerms.join(', ')}`
+      );
     }
   }
 
   /**
    * Perform security analysis on plugin code
    */
-  private performSecurityAnalysis(code: string, result: ValidationResult): void {
+  private performSecurityAnalysis(
+    code: string,
+    result: ValidationResult
+  ): void {
     // Size check
     if (code.length > this.config.maxSize) {
-      result.errors.push(`Plugin code exceeds maximum size (${this.config.maxSize} bytes)`);
+      result.errors.push(
+        `Plugin code exceeds maximum size (${this.config.maxSize} bytes)`
+      );
     }
 
     // Dangerous patterns based on security level
     const dangerousPatterns = this.getDangerousPatterns();
-    
+
     for (const { pattern, message, level } of dangerousPatterns) {
       if (this.shouldCheckPattern(level) && pattern.test(code)) {
         result.securityIssues.push(message);
@@ -261,7 +321,9 @@ export class PluginValidator {
     // Check for eval usage
     if (this.hasEval(code)) {
       if (this.config.securityLevel === 'strict') {
-        result.securityIssues.push('Use of eval() is not allowed in strict mode');
+        result.securityIssues.push(
+          'Use of eval() is not allowed in strict mode'
+        );
       } else {
         result.warnings.push('Plugin uses eval() which may be unsafe');
       }
@@ -276,7 +338,11 @@ export class PluginValidator {
   /**
    * Cross-validate plugin and manifest consistency
    */
-  private crossValidate(plugin: Plugin, manifest: PluginManifest, result: ValidationResult): void {
+  private crossValidate(
+    plugin: Plugin,
+    manifest: PluginManifest,
+    result: ValidationResult
+  ): void {
     // Name consistency
     if (plugin.name !== manifest.name) {
       result.errors.push('Plugin name does not match manifest name');
@@ -291,58 +357,62 @@ export class PluginValidator {
   /**
    * Get dangerous code patterns based on security level
    */
-  private getDangerousPatterns(): Array<{ pattern: RegExp; message: string; level: SecurityLevel }> {
+  private getDangerousPatterns(): Array<{
+    pattern: RegExp;
+    message: string;
+    level: SecurityLevel;
+  }> {
     return [
       {
         pattern: /eval\s*\(/gi,
         message: 'Use of eval() function detected',
-        level: 'permissive'
+        level: 'permissive',
       },
       {
         pattern: /Function\s*\(/gi,
         message: 'Use of Function constructor detected',
-        level: 'permissive'
+        level: 'permissive',
       },
       {
         pattern: /document\.write/gi,
         message: 'Use of document.write detected',
-        level: 'moderate'
+        level: 'moderate',
       },
       {
         pattern: /innerHTML\s*=/gi,
         message: 'Direct innerHTML assignment detected',
-        level: 'moderate'
+        level: 'moderate',
       },
       {
         pattern: /outerHTML\s*=/gi,
         message: 'Direct outerHTML assignment detected',
-        level: 'moderate'
+        level: 'moderate',
       },
       {
         pattern: /\.call\s*\(\s*null/gi,
         message: 'Suspicious function call pattern detected',
-        level: 'strict'
+        level: 'strict',
       },
       {
         pattern: /setInterval\s*\(\s*["'].*["']/gi,
         message: 'String-based setInterval detected',
-        level: 'moderate'
+        level: 'moderate',
       },
       {
         pattern: /setTimeout\s*\(\s*["'].*["']/gi,
         message: 'String-based setTimeout detected',
-        level: 'moderate'
+        level: 'moderate',
       },
       {
         pattern: /new\s+ActiveXObject/gi,
         message: 'ActiveX object creation detected',
-        level: 'strict'
+        level: 'strict',
       },
       {
         pattern: /chrome\.runtime\.reload/gi,
         message: 'Extension reload attempt detected',
-        level: 'strict'
-      }
+        level: 'strict',
+      },
     ];
   }
 
@@ -353,7 +423,7 @@ export class PluginValidator {
     const levels: SecurityLevel[] = ['strict', 'moderate', 'permissive'];
     const currentIndex = levels.indexOf(this.config.securityLevel);
     const patternIndex = levels.indexOf(patternLevel);
-    
+
     return currentIndex <= patternIndex;
   }
 
@@ -361,7 +431,8 @@ export class PluginValidator {
    * Check if version string is valid
    */
   private isValidVersion(version: string): boolean {
-    const semverRegex = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+    const semverRegex =
+      /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
     return semverRegex.test(version);
   }
 
@@ -382,8 +453,18 @@ export class PluginValidator {
    */
   private isReservedName(name: string): boolean {
     const reserved = [
-      'scriptpilot', 'core', 'system', 'admin', 'root', 'api', 
-      'plugin', 'extension', 'chrome', 'firefox', 'edge', 'browser'
+      'scriptpilot',
+      'core',
+      'system',
+      'admin',
+      'root',
+      'api',
+      'plugin',
+      'extension',
+      'chrome',
+      'firefox',
+      'edge',
+      'browser',
     ];
     return reserved.includes(name.toLowerCase());
   }
@@ -396,9 +477,10 @@ export class PluginValidator {
     const lines = code.split('\n');
     const avgLineLength = code.length / lines.length;
     const singleCharVars = (code.match(/\b[a-zA-Z]\b/g) || []).length;
-    const totalVars = (code.match(/\b[a-zA-Z_$][a-zA-Z0-9_$]*\b/g) || []).length;
-    
-    return avgLineLength > 500 || (singleCharVars / totalVars) > 0.3;
+    const totalVars = (code.match(/\b[a-zA-Z_$][a-zA-Z0-9_$]*\b/g) || [])
+      .length;
+
+    return avgLineLength > 500 || singleCharVars / totalVars > 0.3;
   }
 
   /**
@@ -408,7 +490,7 @@ export class PluginValidator {
     const lines = code.split('\n');
     const avgLineLength = code.length / lines.length;
     const whitespaceRatio = (code.match(/\s/g) || []).length / code.length;
-    
+
     return avgLineLength > 200 && whitespaceRatio < 0.1;
   }
 
@@ -424,14 +506,14 @@ export class PluginValidator {
    */
   private hasNativeCode(code: string): boolean {
     const nativePatterns = [
-      /\.so\b/,  // Unix shared libraries
+      /\.so\b/, // Unix shared libraries
       /\.dll\b/, // Windows DLLs
       /\.dylib\b/, // macOS dynamic libraries
       /WebAssembly\./,
       /wasm/i,
-      /native/i
+      /native/i,
     ];
-    
+
     return nativePatterns.some(pattern => pattern.test(code));
   }
 

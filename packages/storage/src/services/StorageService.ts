@@ -1,17 +1,16 @@
 import type { Script, Settings } from '@scriptpilot/types';
-import type { 
-  StorageService,
-  ScriptStorageService, 
-  SettingsStorageService,
-  SyncService,
-  BackupService,
-  StorageAdapter,
-  BackupData,
-  BackupMetadata
-} from '../types';
-import { ChromeStorageAdapter } from '../adapters/ChromeStorageAdapter';
-import { IndexedDBAdapter } from '../adapters/IndexedDBAdapter';
 import { DEFAULT_SETTINGS } from '@scriptpilot/types';
+import { ChromeStorageAdapter } from '../adapters/ChromeStorageAdapter';
+import type {
+  BackupData,
+  BackupMetadata,
+  BackupService,
+  ScriptStorageService,
+  SettingsStorageService,
+  StorageAdapter,
+  StorageService,
+  SyncService,
+} from '../types';
 
 /**
  * Main storage service implementation
@@ -30,7 +29,10 @@ export class StorageServiceImpl implements StorageService {
     this.syncAdapter = new ChromeStorageAdapter('sync');
 
     this.scripts = new ScriptStorageServiceImpl(this.localAdapter);
-    this.settings = new SettingsStorageServiceImpl(this.localAdapter, this.syncAdapter);
+    this.settings = new SettingsStorageServiceImpl(
+      this.localAdapter,
+      this.syncAdapter
+    );
     this.sync = new SyncServiceImpl(this.syncAdapter);
     this.backup = new BackupServiceImpl(this.localAdapter);
   }
@@ -82,17 +84,18 @@ class ScriptStorageServiceImpl implements ScriptStorageService {
   async searchScripts(query: string): Promise<Script[]> {
     const scripts = await this.getAllScripts();
     const lowerQuery = query.toLowerCase();
-    
-    return scripts.filter(script => 
-      script.metadata.name?.toLowerCase().includes(lowerQuery) ||
-      script.metadata.author?.toLowerCase().includes(lowerQuery) ||
-      script.metadata.description?.toLowerCase().includes(lowerQuery)
+
+    return scripts.filter(
+      script =>
+        script.metadata.name?.toLowerCase().includes(lowerQuery) ||
+        script.metadata.author?.toLowerCase().includes(lowerQuery) ||
+        script.metadata.description?.toLowerCase().includes(lowerQuery)
     );
   }
 
   async getScriptsByDomain(domain: string): Promise<Script[]> {
     const scripts = await this.getAllScripts();
-    
+
     return scripts.filter(script => {
       return script.metadata.match.some(pattern => {
         if (pattern === '*') return true;
@@ -142,7 +145,7 @@ class SettingsStorageServiceImpl implements SettingsStorageService {
     if (!settings) {
       settings = await this.localAdapter.get<Settings>(this.key);
     }
-    
+
     // Return defaults if nothing found
     return settings || DEFAULT_SETTINGS;
   }
@@ -150,18 +153,18 @@ class SettingsStorageServiceImpl implements SettingsStorageService {
   async updateSettings(updates: Partial<Settings>): Promise<void> {
     const current = await this.getSettings();
     const updated = this.mergeSettings(current, updates);
-    
+
     // Save to both local and sync storage
     await Promise.all([
       this.localAdapter.set(this.key, updated),
-      this.syncAdapter.set(this.key, updated)
+      this.syncAdapter.set(this.key, updated),
     ]);
   }
 
   async resetSettings(): Promise<void> {
     await Promise.all([
       this.localAdapter.set(this.key, DEFAULT_SETTINGS),
-      this.syncAdapter.set(this.key, DEFAULT_SETTINGS)
+      this.syncAdapter.set(this.key, DEFAULT_SETTINGS),
     ]);
   }
 
@@ -172,25 +175,28 @@ class SettingsStorageServiceImpl implements SettingsStorageService {
   async importSettings(settings: Settings): Promise<void> {
     await Promise.all([
       this.localAdapter.set(this.key, settings),
-      this.syncAdapter.set(this.key, settings)
+      this.syncAdapter.set(this.key, settings),
     ]);
   }
 
-  private mergeSettings(current: Settings, updates: Partial<Settings>): Settings {
+  private mergeSettings(
+    current: Settings,
+    updates: Partial<Settings>
+  ): Settings {
     const merged = { ...current };
-    
+
     for (const [key, value] of Object.entries(updates)) {
       if (value && typeof value === 'object' && !Array.isArray(value)) {
         // Deep merge for nested objects
-        (merged as any)[key] = { 
-          ...(merged as any)[key], 
-          ...value 
+        (merged as any)[key] = {
+          ...(merged as any)[key],
+          ...value,
         };
       } else {
         (merged as any)[key] = value;
       }
     }
-    
+
     return merged;
   }
 }
@@ -212,7 +218,10 @@ class SyncServiceImpl implements SyncService {
   }
 
   async enable(): Promise<void> {
-    await this.adapter.set(this.syncKey, { enabled: true, lastSync: new Date() });
+    await this.adapter.set(this.syncKey, {
+      enabled: true,
+      lastSync: new Date(),
+    });
   }
 
   async disable(): Promise<void> {
@@ -221,9 +230,9 @@ class SyncServiceImpl implements SyncService {
 
   async sync(): Promise<void> {
     // TODO: Implement actual sync logic
-    await this.adapter.set(this.syncKey, { 
-      enabled: true, 
-      lastSync: new Date() 
+    await this.adapter.set(this.syncKey, {
+      enabled: true,
+      lastSync: new Date(),
     });
   }
 
@@ -252,8 +261,9 @@ class BackupServiceImpl implements BackupService {
     const scripts = await this.adapter.getBatch(
       (await this.adapter.getAllKeys()).filter(key => key.startsWith('script:'))
     );
-    
-    const settings = await this.adapter.get<Settings>('settings') || DEFAULT_SETTINGS;
+
+    const settings =
+      (await this.adapter.get<Settings>('settings')) || DEFAULT_SETTINGS;
 
     const metadata: BackupMetadata = {
       id: `backup_${Date.now()}`,
@@ -261,7 +271,7 @@ class BackupServiceImpl implements BackupService {
       size: 0,
       scriptCount: Object.keys(scripts).length,
       createdAt: new Date(),
-      source: 'manual'
+      source: 'manual',
     };
 
     const backup: BackupData = {
@@ -269,7 +279,7 @@ class BackupServiceImpl implements BackupService {
       timestamp: new Date(),
       scripts: Object.values(scripts),
       settings,
-      metadata
+      metadata,
     };
 
     // Calculate size
@@ -307,7 +317,7 @@ class BackupServiceImpl implements BackupService {
     const keys = await this.adapter.getAllKeys();
     const backupKeys = keys.filter(key => key.startsWith(this.backupKey));
     const backups = await this.adapter.getBatch(backupKeys);
-    
+
     return Object.values(backups)
       .map((backup: BackupData) => backup.metadata)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -316,8 +326,10 @@ class BackupServiceImpl implements BackupService {
   async deleteOldBackups(keepCount: number): Promise<void> {
     const history = await this.getBackupHistory();
     const toDelete = history.slice(keepCount);
-    
-    const keysToDelete = toDelete.map(backup => `${this.backupKey}${backup.id}`);
+
+    const keysToDelete = toDelete.map(
+      backup => `${this.backupKey}${backup.id}`
+    );
     await this.adapter.removeBatch(keysToDelete);
   }
 }

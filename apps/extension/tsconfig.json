@@ -1,0 +1,49 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "strict": true,
+    "noEmit": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmitOnError": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@scriptpilot/core": ["../../packages/core/src/index.ts"],
+      "@scriptpilot/ui": ["../../packages/ui/src/index.ts"],
+      "@scriptpilot/storage": ["../../packages/storage/src/index.ts"],
+      "@scriptpilot/plugins": ["../../packages/plugins/src/index.ts"],
+      "@scriptpilot/types": ["../../packages/types/src/index.ts"]
+    },
+    "types": ["vite/client", "webextension-polyfill", "@types/chrome"]
+  },
+  "include": ["src/**/*", "vite.config.ts"],
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    {
+      "path": "../../packages/types"
+    },
+    {
+      "path": "../../packages/core"
+    },
+    {
+      "path": "../../packages/ui"
+    },
+    {
+      "path": "../../packages/storage"
+    },
+    {
+      "path": "../../packages/plugins"
+    }
+  ]
+}

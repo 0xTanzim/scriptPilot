@@ -175,3 +175,28 @@ export interface GMAPI {
   // Download
   GM_download: (url: string, filename?: string) => Promise<void>;
 }
+
+export interface GMAPIContext extends GMStorage {
+  /** Make XML HTTP request */
+  xmlHttpRequest(options: GMXhrOptions): Promise<GMXhrResponse>;
+  /** Open URL in new tab */
+  openInTab(url: string, options?: { active?: boolean }): Promise<void>;
+  /** Show notification */
+  notification(message: string, title?: string): Promise<void>;
+  /** Set clipboard content */
+  setClipboard(text: string): Promise<void>;
+  /** Add CSS style to page */
+  addStyle(css: string): HTMLStyleElement;
+  /** Get resource text */
+  getResourceText(name: string): Promise<string>;
+  /** Get resource URL */
+  getResourceURL(name: string): Promise<string>;
+  /** Register menu command */
+  registerMenuCommand(caption: string, func: () => void): string;
+  /** Unregister menu command */
+  unregisterMenuCommand(id: string): void;
+  /** Log message */
+  log(message: any): void;
+  /** Script information */
+  info: GMInfo;
+}

@@ -20,7 +20,7 @@ const CorePluginHelpers = {
    */
   registerUtils(context: PluginContext): void {
     const logger = context.logger;
-    
+
     // Add utility functions to global ScriptPilot namespace
     const utils = {
       /**
@@ -58,7 +58,11 @@ const CorePluginHelpers = {
       /**
        * Format script execution statistics
        */
-      formatStats(stats: { execCount: number; lastExec: number; avgTime: number }): string {
+      formatStats(stats: {
+        execCount: number;
+        lastExec: number;
+        avgTime: number;
+      }): string {
         const lastExecDate = new Date(stats.lastExec).toLocaleDateString();
         return `Executed ${stats.execCount} times, last: ${lastExecDate}, avg: ${stats.avgTime}ms`;
       },
@@ -72,9 +76,11 @@ const CorePluginHelpers = {
           new Function(code);
           return { valid: true, errors: [] };
         } catch (error) {
-          return { 
-            valid: false, 
-            errors: [error instanceof Error ? error.message : 'Unknown syntax error'] 
+          return {
+            valid: false,
+            errors: [
+              error instanceof Error ? error.message : 'Unknown syntax error',
+            ],
           };
         }
       },
@@ -83,7 +89,11 @@ const CorePluginHelpers = {
        * Generate unique ID
        */
       generateId(): string {
-        return 'sp_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+        return (
+          'sp_' +
+          Date.now().toString(36) +
+          Math.random().toString(36).substr(2, 9)
+        );
       },
 
       /**
@@ -117,10 +127,10 @@ const CorePluginHelpers = {
           if (!inThrottle) {
             func.apply(this, args);
             inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
+            setTimeout(() => (inThrottle = false), limit);
           }
         }) as T;
-      }
+      },
     };
 
     // Make utils available through context
@@ -138,14 +148,14 @@ const CorePluginHelpers = {
     // Register event handlers for core functionality
     eventEmitter.on('script:executed', (data: any) => {
       logger.debug('Script executed:', data);
-      
+
       // Track execution statistics
       CorePluginHelpers.trackScriptExecution(context, data);
     });
 
     eventEmitter.on('script:error', (data: any) => {
       logger.error('Script execution error:', data);
-      
+
       // Track error statistics
       CorePluginHelpers.trackScriptError(context, data);
     });
@@ -178,42 +188,49 @@ const CorePluginHelpers = {
       'core:clear-cache': async () => {
         logger.info('Clearing cache...');
         const storage = context.storageService;
-        
+
         // Clear temporary cache data
         const keys = await storage.keys();
-        const cacheKeys = keys.filter((key: string) => key.startsWith('cache_'));
-        
+        const cacheKeys = keys.filter((key: string) =>
+          key.startsWith('cache_')
+        );
+
         for (const key of cacheKeys) {
           await storage.remove(key);
         }
-        
-        return { success: true, message: `Cleared ${cacheKeys.length} cache entries` };
+
+        return {
+          success: true,
+          message: `Cleared ${cacheKeys.length} cache entries`,
+        };
       },
 
       'core:export-settings': async () => {
         logger.info('Exporting settings...');
         const storage = context.storageService;
-        
+
         // Export all settings
         const keys = await storage.keys();
-        const settingsKeys = keys.filter((key: string) => key.startsWith('setting_'));
+        const settingsKeys = keys.filter((key: string) =>
+          key.startsWith('setting_')
+        );
         const settings: Record<string, any> = {};
-        
+
         for (const key of settingsKeys) {
           settings[key] = await storage.get(key);
         }
-        
-        return { 
-          success: true, 
+
+        return {
+          success: true,
           data: settings,
-          message: `Exported ${Object.keys(settings).length} settings` 
+          message: `Exported ${Object.keys(settings).length} settings`,
         };
       },
 
       'core:import-settings': async (settingsData: Record<string, any>) => {
         logger.info('Importing settings...');
         const storage = context.storageService;
-        
+
         let imported = 0;
         for (const [key, value] of Object.entries(settingsData)) {
           if (key.startsWith('setting_')) {
@@ -221,12 +238,12 @@ const CorePluginHelpers = {
             imported++;
           }
         }
-        
-        return { 
-          success: true, 
-          message: `Imported ${imported} settings` 
+
+        return {
+          success: true,
+          message: `Imported ${imported} settings`,
         };
-      }
+      },
     };
 
     // Register commands with context
@@ -241,22 +258,22 @@ const CorePluginHelpers = {
     try {
       const storage = context.storageService;
       const scriptId = data.scriptId;
-      
+
       if (!scriptId) return;
-      
+
       const statsKey = `stats_${scriptId}`;
-      const stats = await storage.get(statsKey) || {
+      const stats = (await storage.get(statsKey)) || {
         execCount: 0,
         lastExec: 0,
         totalTime: 0,
-        avgTime: 0
+        avgTime: 0,
       };
-      
+
       stats.execCount++;
       stats.lastExec = Date.now();
       stats.totalTime += data.executionTime || 0;
       stats.avgTime = stats.totalTime / stats.execCount;
-      
+
       await storage.set(statsKey, stats);
     } catch (error) {
       context.logger.error('Failed to track script execution:', error);
@@ -270,28 +287,28 @@ const CorePluginHelpers = {
     try {
       const storage = context.storageService;
       const scriptId = data.scriptId;
-      
+
       if (!scriptId) return;
-      
+
       const errorsKey = `errors_${scriptId}`;
-      const errors = await storage.get(errorsKey) || [];
-      
+      const errors = (await storage.get(errorsKey)) || [];
+
       errors.push({
         timestamp: Date.now(),
         error: data.error,
-        url: data.url
+        url: data.url,
       });
-      
+
       // Keep only last 50 errors
       if (errors.length > 50) {
         errors.splice(0, errors.length - 50);
       }
-      
+
       await storage.set(errorsKey, errors);
     } catch (error) {
       context.logger.error('Failed to track script error:', error);
     }
-  }
+  },
 };
 
 /**
@@ -310,10 +327,10 @@ export const ScriptPilotCorePlugin: Plugin = {
 
     // Register core utilities
     CorePluginHelpers.registerUtils(context);
-    
+
     // Register core events
     CorePluginHelpers.registerEvents(context);
-    
+
     // Register core commands
     CorePluginHelpers.registerCommands(context);
 
@@ -328,9 +345,9 @@ export const ScriptPilotCorePlugin: Plugin = {
     logger.info('Unregistering ScriptPilot Core Plugin');
 
     // Cleanup would go here
-    
+
     logger.info('ScriptPilot Core Plugin unregistered');
-  }
+  },
 };
 
 export default ScriptPilotCorePlugin;

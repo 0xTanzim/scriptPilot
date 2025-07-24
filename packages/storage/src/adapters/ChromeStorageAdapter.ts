@@ -44,7 +44,10 @@ export class ChromeStorageAdapter implements StorageAdapter {
     try {
       await browser.storage[this.area].remove(key);
     } catch (error) {
-      console.error(`Failed to remove ${key} from ${this.area} storage:`, error);
+      console.error(
+        `Failed to remove ${key} from ${this.area} storage:`,
+        error
+      );
       throw error;
     }
   }
@@ -116,7 +119,7 @@ export class ChromeStorageAdapter implements StorageAdapter {
   async getUsage(): Promise<{ bytesInUse: number; quota: number }> {
     try {
       let bytesInUse = 0;
-      
+
       // Check if getBytesInUse is available
       if ('getBytesInUse' in browser.storage[this.area]) {
         bytesInUse = await (browser.storage[this.area] as any).getBytesInUse();
@@ -125,7 +128,7 @@ export class ChromeStorageAdapter implements StorageAdapter {
         const allData = await browser.storage[this.area].get(null);
         bytesInUse = new Blob([JSON.stringify(allData)]).size;
       }
-      
+
       // Chrome storage quotas
       const quotas = {
         local: 5 * 1024 * 1024, // 5MB for local storage
@@ -161,8 +164,15 @@ export class ChromeStorageAdapter implements StorageAdapter {
   /**
    * Listen for storage changes
    */
-  onChanged(callback: (changes: Record<string, { oldValue?: any; newValue?: any }>) => void): () => void {
-    const listener = (changes: Record<string, browser.Storage.StorageChange>, areaName: string) => {
+  onChanged(
+    callback: (
+      changes: Record<string, { oldValue?: any; newValue?: any }>
+    ) => void
+  ): () => void {
+    const listener = (
+      changes: Record<string, browser.Storage.StorageChange>,
+      areaName: string
+    ) => {
       if (areaName === this.area) {
         callback(changes);
       }
@@ -194,7 +204,9 @@ export class ChromeStorageAdapter implements StorageAdapter {
 /**
  * Factory function to create Chrome Storage adapters
  */
-export function createChromeStorageAdapter(area: 'local' | 'sync' = 'local'): ChromeStorageAdapter {
+export function createChromeStorageAdapter(
+  area: 'local' | 'sync' = 'local'
+): ChromeStorageAdapter {
   return new ChromeStorageAdapter(area);
 }
 
@@ -210,13 +222,15 @@ export async function migrateStorageArea(
   const toAdapter = new ChromeStorageAdapter(toArea);
 
   try {
-    const keysToMigrate = keys || await fromAdapter.getAllKeys();
+    const keysToMigrate = keys || (await fromAdapter.getAllKeys());
     const data = await fromAdapter.getBatch(keysToMigrate);
-    
+
     await toAdapter.setBatch(data);
     await fromAdapter.removeBatch(keysToMigrate);
 
-    console.log(`Migrated ${keysToMigrate.length} items from ${fromArea} to ${toArea} storage`);
+    console.log(
+      `Migrated ${keysToMigrate.length} items from ${fromArea} to ${toArea} storage`
+    );
   } catch (error) {
     console.error(`Failed to migrate from ${fromArea} to ${toArea}:`, error);
     throw error;

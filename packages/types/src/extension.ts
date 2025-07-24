@@ -68,6 +68,8 @@ export interface ExtensionMessage {
   type: string;
   /** Message payload */
   payload?: unknown;
+  /** Message data */
+  data?: unknown;
   /** Message ID for responses */
   id?: string;
   /** Tab ID (for tab-specific messages) */

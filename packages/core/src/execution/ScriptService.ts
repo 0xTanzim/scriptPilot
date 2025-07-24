@@ -200,6 +200,52 @@ export class ScriptService implements IScriptService {
   }
 
   /**
+   * Parse a script from raw code and URL
+   */
+  async parseScriptFromCode(code: string, url?: string): Promise<Script> {
+    try {
+      // Parse metadata from the script code
+      const metadata = await this.parser.parseMetadata(code);
+
+      // Generate script ID from URL or content hash
+      const scriptId = url
+        ? btoa(url).replace(/[^a-zA-Z0-9]/g, '')
+        : btoa(code.substring(0, 100)).replace(/[^a-zA-Z0-9]/g, '');
+
+      const script: Script = {
+        id: scriptId,
+        code,
+        metadata,
+        enabled: true,
+        installedAt: new Date(),
+        updatedAt: new Date(),
+        source: url ? 'url' : 'manual',
+        installUrl: url,
+        size: code.length,
+        executionCount: 0,
+        tags: [],
+        notes: undefined,
+      };
+
+      // Validate the script code
+      const validation = await this.validator.validateScript(code);
+      if (!validation.valid) {
+        throw new ExecutionError(
+          `Invalid script: ${validation.errors.join(', ')}`,
+          { validation, script }
+        );
+      }
+
+      return script;
+    } catch (error) {
+      throw new ExecutionError(
+        `Failed to parse script: ${(error as Error).message}`,
+        { code, url, originalError: error }
+      );
+    }
+  }
+
+  /**
    * Clean up resources
    */
   async dispose(): Promise<void> {
