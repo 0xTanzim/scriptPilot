@@ -47,8 +47,12 @@ class PopupController {
   private async renderApp(): Promise<void> {
     try {
       // Detect if we're in popup or fullscreen mode
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('mode');
       const isFullscreen =
-        window.innerWidth > 500 || window.location.hash.includes('editor');
+        mode === 'fullscreen' ||
+        window.innerWidth > 500 ||
+        window.location.hash.includes('editor');
 
       // Get current tab info
       const tabs = await browser.tabs.query({
@@ -93,9 +97,22 @@ class PopupController {
 
   private async sendMessage(message: ExtensionMessage): Promise<any> {
     try {
+      // Check if runtime is available
+      if (!browser.runtime?.id) {
+        throw new Error('Extension context invalidated');
+      }
+
       return await browser.runtime.sendMessage(message);
     } catch (error) {
       console.error('[ScriptPilot] Failed to send message:', error);
+
+      // If it's a connection error, show a helpful message
+      if ((error as Error).message.includes('Could not establish connection')) {
+        throw new Error(
+          'Extension not properly loaded. Please reload the extension.'
+        );
+      }
+
       throw error;
     }
   }
@@ -175,12 +192,12 @@ class PopupController {
 
   private handleOpenEditor(scriptId?: string): void {
     try {
-      // Open editor in new tab using options page
+      // Always open editor in full-page mode using options page
       const url =
         browser.runtime.getURL('src/popup/popup.html') +
-        '#editor' +
+        '?mode=fullscreen#editor' +
         (scriptId ? `/${scriptId}` : '');
-      browser.tabs.create({ url });
+      browser.tabs.create({ url, active: true });
       window.close();
     } catch (error) {
       console.error('[ScriptPilot] Failed to open editor:', error);

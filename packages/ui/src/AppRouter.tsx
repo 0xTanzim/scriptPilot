@@ -2,6 +2,8 @@ import { Script } from '@scriptpilot/types';
 import React from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { App } from './components/CleanApp';
+import { PopupView } from './components/PopupView';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import { ScriptProvider } from './contexts/ScriptContext';
 
 interface AppRouterProps {
@@ -23,6 +25,7 @@ interface AppRouterProps {
  * - Uses React Router for navigation
  * - Uses Context API for state management
  * - Provides clean separation of concerns
+ * - Includes welcome screen for new users
  */
 export const AppRouter: React.FC<AppRouterProps> = ({
   scripts = [],
@@ -37,6 +40,10 @@ export const AppRouter: React.FC<AppRouterProps> = ({
   onOpenEditor,
   mode = 'popup',
 }) => {
+  // Check if this is a new user (no scripts created yet)
+  const isNewUser = scripts.length === 0;
+  const isFirstVisit = !localStorage.getItem('scriptpilot-visited');
+
   // Set body classes based on mode
   React.useEffect(() => {
     const body = document.body;
@@ -54,6 +61,11 @@ export const AppRouter: React.FC<AppRouterProps> = ({
 
     // Ensure Tailwind base classes are applied
     body.classList.add('bg-background', 'text-foreground');
+
+    // Mark as visited
+    if (!localStorage.getItem('scriptpilot-visited')) {
+      localStorage.setItem('scriptpilot-visited', 'true');
+    }
   }, [mode]);
 
   const contextValue = {
@@ -70,11 +82,77 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     onOpenEditor,
   };
 
+  // Handle welcome screen actions
+  const handleGetStarted = () => {
+    window.location.hash = '#/list';
+  };
+
+  const handleCreateFirstScript = () => {
+    if (onOpenEditor) {
+      onOpenEditor();
+    } else {
+      window.location.hash = '#/editor';
+    }
+  };
+
+  // Show welcome screen for new users in fullscreen mode or first visit
+  const shouldShowWelcome =
+    (isNewUser && isFirstVisit && mode === 'fullscreen') ||
+    window.location.hash === '#/welcome';
+
+  if (shouldShowWelcome) {
+    return (
+      <ScriptProvider value={contextValue}>
+        <WelcomeScreen
+          onGetStarted={handleGetStarted}
+          onCreateScript={handleCreateFirstScript}
+          onOpenSettings={onOpenSettings}
+        />
+      </ScriptProvider>
+    );
+  }
+
+  // In popup mode, use simplified PopupView component
+  if (mode === 'popup') {
+    return (
+      <ScriptProvider value={contextValue}>
+        <PopupView
+          scripts={scripts}
+          currentUrl={currentUrl}
+          scriptStatus={scriptStatus}
+          onEditScript={script => onOpenEditor?.(script.id)}
+          onCreateScript={() => onOpenEditor?.()}
+          onToggleScript={onScriptToggle}
+          onOpenSettings={onOpenSettings}
+        />
+      </ScriptProvider>
+    );
+  }
+
   return (
     <ScriptProvider value={contextValue}>
       <HashRouter>
         <Routes>
-          <Route path='/' element={<Navigate to='/list' replace />} />
+          <Route
+            path='/'
+            element={
+              isNewUser && mode === 'fullscreen' ? (
+                <Navigate to='/welcome' replace />
+              ) : (
+                <Navigate to='/list' replace />
+              )
+            }
+          />
+          <Route
+            path='/welcome'
+            element={
+              <WelcomeScreen
+                onGetStarted={handleGetStarted}
+                onCreateScript={handleCreateFirstScript}
+                onOpenSettings={onOpenSettings}
+              />
+            }
+          />
           <Route path='/list' element={<App />} />
           <Route path='/editor' element={<App />} />
           <Route path='/editor/:scriptId' element={<App />} />

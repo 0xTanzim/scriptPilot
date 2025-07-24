@@ -153,17 +153,24 @@ class BackgroundService {
   }
 
   private setupContextMenu(): void {
-    browser.contextMenus.create({
-      id: 'scriptpilot-install',
-      title: 'Install as userscript',
-      contexts: ['link'],
-      targetUrlPatterns: [
-        '*://*/*.user.js',
-        '*://*/*.user.js?*',
-        '*://*/*user.js',
-        '*://*/*user.js?*',
-      ],
-    });
+    try {
+      // Remove existing context menu items first to avoid duplicates
+      browser.contextMenus.removeAll().then(() => {
+        browser.contextMenus.create({
+          id: 'scriptpilot-install',
+          title: 'Install as userscript',
+          contexts: ['link'],
+          targetUrlPatterns: [
+            '*://*/*.user.js',
+            '*://*/*.user.js?*',
+            '*://*/*user.js',
+            '*://*/*user.js?*',
+          ],
+        });
+      });
+    } catch (error) {
+      console.error('[ScriptPilot] Failed to setup context menu:', error);
+    }
 
     browser.contextMenus.onClicked.addListener(async (info, tab) => {
       if (info.menuItemId === 'scriptpilot-install' && info.linkUrl) {

@@ -3,10 +3,12 @@ export { AppRouter } from './AppRouter';
 export { App } from './components/CleanApp';
 export { DraggableDevTools } from './components/DraggableDevTools';
 export { ErrorBoundary } from './components/ErrorBoundary';
+export { PopupView } from './components/PopupView';
 export { ScriptEditor } from './components/ScriptEditor';
 export { ScriptList } from './components/ScriptList';
 export { SettingsPanel } from './components/SettingsPanel';
 export { StatusIndicator } from './components/StatusIndicator';
+export { WelcomeScreen } from './components/WelcomeScreen';
 export { DevApp } from './DevApp';
 
 // Context providers

@@ -69,7 +69,8 @@ const manifest = {
   ],
 
   content_security_policy: {
-    extension_pages: "script-src 'self'; object-src 'self';",
+    extension_pages:
+      "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; style-src 'self' 'unsafe-inline';",
   },
 };
 
@@ -104,6 +105,15 @@ export default defineConfig({
         devtools: resolve(__dirname, 'src/devtools/devtools.html'),
         panel: resolve(__dirname, 'src/devtools/panel.html'),
       },
+      output: {
+        assetFileNames: assetInfo => {
+          // Keep Monaco Editor workers in assets folder
+          if (assetInfo.name?.includes('worker')) {
+            return 'assets/[name].[ext]';
+          }
+          return 'assets/[name]-[hash].[ext]';
+        },
+      },
     },
     outDir: 'dist',
     sourcemap: true,
@@ -136,8 +146,6 @@ export default defineConfig({
       '@scriptpilot/storage',
       '@scriptpilot/plugins',
       '@scriptpilot/types',
-      'monaco-editor',
-      '@monaco-editor/react',
     ],
   },
 

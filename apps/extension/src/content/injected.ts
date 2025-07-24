@@ -3,6 +3,14 @@
  * This provides the GM API and executes userscripts
  */
 
+export {}; // Make this file a module so global augmentation is allowed
+
+declare global {
+  interface Window {
+    SCRIPTPILOT_INJECTED?: boolean;
+  }
+}
+
 // This script runs in the page context and provides the GM API
 (() => {
   // Only inject once

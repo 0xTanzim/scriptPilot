@@ -1,5 +1,8 @@
-import Editor from '@monaco-editor/react';
+import { javascript } from '@codemirror/lang-javascript';
+import { EditorView } from '@codemirror/view';
 import type { Script, ScriptMetadata } from '@scriptpilot/types';
+import { dracula } from '@uiw/codemirror-theme-dracula';
+import CodeMirror from '@uiw/react-codemirror';
 import {
   AlertCircle,
   FileText,
@@ -70,7 +73,6 @@ export function ScriptEditor({ script, onSave, onClose }: ScriptEditorProps) {
   }>({ match: [], exclude: [] });
 
   // Refs for scroll management
-  const editorRef = useRef<any>(null);
   const metadataRef = useRef<HTMLDivElement>(null);
 
   // Auto-save effect - Fixed to prevent unwanted triggers and respect user preference
@@ -236,7 +238,7 @@ export function ScriptEditor({ script, onSave, onClose }: ScriptEditorProps) {
     }
   }, [onSave, validateMetadata, script, code, metadata]);
 
-  const handleCodeChange = (value: string | undefined) => {
+  const handleCodeChange = (value: string) => {
     setCode(value || '');
     setIsDirty(true);
   };
@@ -338,30 +340,58 @@ export function ScriptEditor({ script, onSave, onClose }: ScriptEditorProps) {
               </div>
             </div>
           </div>
-          <Editor
-            height='calc(100vh - 240px)'
-            defaultLanguage='javascript'
+          <CodeMirror
             value={code}
-            onChange={handleCodeChange}
-            theme='vs-dark'
-            options={{
-              minimap: { enabled: true },
-              fontSize: 14,
-              lineNumbers: 'on',
-              roundedSelection: false,
-              scrollBeyondLastLine: false,
-              automaticLayout: true,
-              tabSize: 2,
-              insertSpaces: true,
-              wordWrap: 'on',
-              folding: true,
-              foldingStrategy: 'indentation',
-              showFoldingControls: 'always',
-              cursorBlinking: 'blink',
-              cursorStyle: 'line',
-              renderLineHighlight: 'line',
-              selectionHighlight: true,
-              smoothScrolling: true,
+            height='calc(100vh - 240px)'
+            theme={dracula}
+            extensions={[
+              javascript({ jsx: true }),
+              EditorView.theme({
+                '&': {
+                  fontSize: '16px',
+                  fontFamily:
+                    "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace",
+                },
+                '.cm-content': {
+                  padding: '16px',
+                  lineHeight: '1.6',
+                },
+                '.cm-focused': {
+                  outline: 'none',
+                },
+                '.cm-editor': {
+                  borderRadius: '0',
+                },
+                '.cm-scroller': {
+                  fontFamily:
+                    "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace",
+                },
+                '.cm-lineNumbers': {
+                  minWidth: '40px',
+                },
+                '.cm-gutters': {
+                  backgroundColor: 'transparent',
+                  borderRight: '1px solid rgba(255,255,255,0.1)',
+                },
+              }),
+              EditorView.lineWrapping,
+            ]}
+            onChange={value => handleCodeChange(value)}
+            basicSetup={{
+              lineNumbers: true,
+              foldGutter: true,
+              dropCursor: false,
+              allowMultipleSelections: true,
+              indentOnInput: true,
+              bracketMatching: true,
+              closeBrackets: true,
+              autocompletion: true,
+              highlightActiveLine: true,
+              searchKeymap: true,
+              historyKeymap: true,
+              defaultKeymap: true,
+              completionKeymap: true,
+              highlightSelectionMatches: true,
             }}
           />
         </div>
