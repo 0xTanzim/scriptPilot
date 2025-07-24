@@ -46,6 +46,10 @@ class PopupController {
 
   private async renderApp(): Promise<void> {
     try {
+      // Detect if we're in popup or fullscreen mode
+      const isFullscreen =
+        window.innerWidth > 500 || window.location.hash.includes('editor');
+
       // Get current tab info
       const tabs = await browser.tabs.query({
         active: true,
@@ -76,6 +80,7 @@ class PopupController {
         onScriptInstall: this.handleScriptInstall.bind(this),
         onOpenSettings: this.handleOpenSettings.bind(this),
         onOpenEditor: this.handleOpenEditor.bind(this),
+        mode: isFullscreen ? ('fullscreen' as const) : ('popup' as const),
       };
 
       // Render React app
@@ -170,10 +175,11 @@ class PopupController {
 
   private handleOpenEditor(scriptId?: string): void {
     try {
-      // Open editor in new tab
-      const url = browser.runtime.getURL(
-        'src/popup/popup.html#editor' + (scriptId ? `/${scriptId}` : '')
-      );
+      // Open editor in new tab using options page
+      const url =
+        browser.runtime.getURL('src/popup/popup.html') +
+        '#editor' +
+        (scriptId ? `/${scriptId}` : '');
       browser.tabs.create({ url });
       window.close();
     } catch (error) {

@@ -8,11 +8,22 @@
       body {
         margin: 0;
         padding: 0;
-        width: 400px;
-        min-height: 500px;
         font-family:
           -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
         background-color: #ffffff;
+      }
+
+      /* Popup mode styles */
+      body.popup-mode {
+        width: 400px;
+        min-height: 500px;
+      }
+
+      /* Fullscreen mode styles */
+      body.fullscreen-mode {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
       }
 
       #root {
@@ -48,6 +59,24 @@
         }
       }
     </style>
+    <script>
+      // Detect mode and apply appropriate styles
+      function detectMode() {
+        const isFullscreen =
+          window.innerWidth > 500 || window.location.hash.includes('editor');
+        document.body.className = isFullscreen
+          ? 'fullscreen-mode'
+          : 'popup-mode';
+      }
+
+      // Apply mode detection on load and resize
+      window.addEventListener('load', detectMode);
+      window.addEventListener('resize', detectMode);
+      window.addEventListener('hashchange', detectMode);
+
+      // Apply initial detection
+      detectMode();
+    </script>
   </head>
   <body>
     <div id="root">

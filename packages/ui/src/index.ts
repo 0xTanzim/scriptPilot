@@ -1,9 +1,13 @@
 // ScriptPilot UI Components
-export { App } from './App';
+export { AppRouter } from './AppRouter';
+export { App } from './components/CleanApp';
+export { DraggableDevTools } from './components/DraggableDevTools';
+export { ErrorBoundary } from './components/ErrorBoundary';
 export { ScriptEditor } from './components/ScriptEditor';
 export { ScriptList } from './components/ScriptList';
 export { SettingsPanel } from './components/SettingsPanel';
 export { StatusIndicator } from './components/StatusIndicator';
+export { DevApp } from './DevApp';
 
 // Re-export shadcn/ui components for external use
 export { Badge } from './components/ui/badge';

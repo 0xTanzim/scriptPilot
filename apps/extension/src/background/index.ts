@@ -4,23 +4,19 @@
  */
 import { ScriptService } from '@scriptpilot/core';
 import { PluginManager } from '@scriptpilot/plugins';
-import { StorageService } from '@scriptpilot/storage';
-import type {
-  ExtensionMessage,
-  Script,
-  ScriptStatusInfo,
-} from '@scriptpilot/types';
+import { StorageServiceImpl } from '@scriptpilot/storage';
+import type { Script, ScriptStatusInfo } from '@scriptpilot/types';
 import browser from 'webextension-polyfill';
 
 class BackgroundService {
   private scriptService: ScriptService;
-  private storageService: StorageService;
+  private storageService: StorageServiceImpl;
   private pluginManager: PluginManager;
   private scriptCache: Map<string, Script> = new Map();
 
   constructor() {
     this.scriptService = new ScriptService();
-    this.storageService = new StorageService();
+    this.storageService = new StorageServiceImpl();
     this.pluginManager = new PluginManager();
 
     this.initialize();
@@ -53,7 +49,7 @@ class BackgroundService {
 
   private async loadScripts(): Promise<void> {
     try {
-      const scripts = await this.storageService.getAllScripts();
+      const scripts = await this.storageService.scripts.getAllScripts();
       this.scriptCache.clear();
 
       for (const script of scripts) {
@@ -83,7 +79,7 @@ class BackgroundService {
   }
 
   private async handleMessage(
-    message: ExtensionMessage,
+    message: any,
     sender: browser.Runtime.MessageSender
   ): Promise<any> {
     try {
@@ -92,22 +88,25 @@ class BackgroundService {
           return Array.from(this.scriptCache.values());
 
         case 'SAVE_SCRIPT':
-          return await this.saveScript(message.data);
+          return await this.saveScript(message.data as Script);
 
         case 'DELETE_SCRIPT':
-          return await this.deleteScript(message.data.id);
+          return await this.deleteScript((message.data as any).id);
 
         case 'TOGGLE_SCRIPT':
-          return await this.toggleScript(message.data.id, message.data.enabled);
+          return await this.toggleScript(
+            (message.data as any).id,
+            (message.data as any).enabled
+          );
 
         case 'EXECUTE_SCRIPT':
           return await this.executeScript(message.data, sender.tab?.id);
 
         case 'GET_SCRIPT_STATUS':
-          return await this.getScriptStatus(message.data.url);
+          return await this.getScriptStatus((message.data as any).url);
 
         case 'INSTALL_FROM_URL':
-          return await this.installScriptFromUrl(message.data.url);
+          return await this.installScriptFromUrl((message.data as any).url);
 
         default:
           console.warn('[ScriptPilot] Unknown message type:', message.type);
@@ -158,7 +157,12 @@ class BackgroundService {
       id: 'scriptpilot-install',
       title: 'Install as userscript',
       contexts: ['link'],
-      targetUrlPatterns: ['*://*.user.js', '*://*.user.js?*'],
+      targetUrlPatterns: [
+        '*://*/*.user.js',
+        '*://*/*.user.js?*',
+        '*://*/*user.js',
+        '*://*/*user.js?*',
+      ],
     });
 
     browser.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -262,9 +266,9 @@ class BackgroundService {
 
   private async saveScript(script: Script): Promise<Script> {
     try {
-      const savedScript = await this.storageService.saveScript(script);
-      this.scriptCache.set(savedScript.id, savedScript);
-      return savedScript;
+      await this.storageService.scripts.saveScript(script);
+      this.scriptCache.set(script.id, script);
+      return script;
     } catch (error) {
       console.error('[ScriptPilot] Failed to save script:', error);
       throw error;
@@ -273,7 +277,7 @@ class BackgroundService {
 
   private async deleteScript(scriptId: string): Promise<void> {
     try {
-      await this.storageService.deleteScript(scriptId);
+      await this.storageService.scripts.deleteScript(scriptId);
       this.scriptCache.delete(scriptId);
     } catch (error) {
       console.error('[ScriptPilot] Failed to delete script:', error);
@@ -292,10 +296,10 @@ class BackgroundService {
       }
 
       const updatedScript = { ...script, enabled };
-      const savedScript = await this.storageService.saveScript(updatedScript);
-      this.scriptCache.set(scriptId, savedScript);
+      await this.storageService.scripts.saveScript(updatedScript);
+      this.scriptCache.set(scriptId, updatedScript);
 
-      return savedScript;
+      return updatedScript;
     } catch (error) {
       console.error('[ScriptPilot] Failed to toggle script:', error);
       throw error;
@@ -308,7 +312,16 @@ class BackgroundService {
     }
 
     try {
-      await this.scriptService.executeScript(scriptData, { tabId });
+      // Get execution context from script service
+      const tab = await browser.tabs.get(tabId);
+      const context = await this.scriptService.getExecutionContext(
+        tab.url || ''
+      );
+
+      await this.scriptService.executeScript(scriptData, {
+        ...context,
+        tabId,
+      });
     } catch (error) {
       console.error('[ScriptPilot] Script execution failed:', error);
       throw error;

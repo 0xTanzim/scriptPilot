@@ -9,32 +9,41 @@ import {
   TooltipTrigger,
 } from './ui/tooltip';
 
+interface StatusIndicatorProps {
+  issuesCount?: number;
+  activeCount?: number;
+  runsToday?: number;
+  totalScripts?: number;
+}
+
 /**
  * Component showing overall script execution status and statistics
  */
-export function StatusIndicator() {
+export function StatusIndicator({
+  issuesCount = 0,
+  activeCount = 0,
+  runsToday = 0,
+  totalScripts = 0,
+}: StatusIndicatorProps) {
   const [stats, setStats] = useState<ScriptStats>({
-    totalScripts: 0,
-    enabledScripts: 0,
-    disabledScripts: 0,
-    errorScripts: 0,
-    executionsToday: 0,
+    totalScripts: totalScripts,
+    enabledScripts: activeCount,
+    disabledScripts: totalScripts - activeCount,
+    errorScripts: issuesCount,
+    executionsToday: runsToday,
   });
   const [isActive] = useState(true);
 
-  // Mock data for development
+  // Update stats when props change
   useEffect(() => {
-    const mockStats: ScriptStats = {
-      totalScripts: 12,
-      enabledScripts: 8,
-      disabledScripts: 3,
-      errorScripts: 1,
-      executionsToday: 142,
-      mostActiveScript: 'GitHub Dark Mode',
-    };
-
-    setStats(mockStats);
-  }, []);
+    setStats({
+      totalScripts,
+      enabledScripts: activeCount,
+      disabledScripts: totalScripts - activeCount,
+      errorScripts: issuesCount,
+      executionsToday: runsToday,
+    });
+  }, [totalScripts, activeCount, issuesCount, runsToday]);
 
   const getStatusIcon = () => {
     if (!isActive) {

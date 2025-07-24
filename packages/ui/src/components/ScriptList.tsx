@@ -2,6 +2,7 @@ import type { Script } from '@scriptpilot/types';
 import { Plus, Search, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { formatDate } from '../utils/dateUtils';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -15,70 +16,32 @@ import { Input } from './ui/input';
 import { Switch } from './ui/switch';
 
 interface ScriptListProps {
+  scripts?: Script[];
   onEditScript?: (script: Script) => void;
   onCreateScript?: () => void;
+  onDeleteScript?: (scriptId: string) => Promise<void>;
+  onToggleScript?: (scriptId: string, enabled: boolean) => Promise<void>;
 }
 
 /**
  * Component for displaying and managing the list of userscripts
  */
-export function ScriptList({ onEditScript, onCreateScript }: ScriptListProps) {
-  const [scripts, setScripts] = useState<Script[]>([]);
+export function ScriptList({
+  scripts: initialScripts = [],
+  onEditScript,
+  onCreateScript,
+  onDeleteScript,
+  onToggleScript,
+}: ScriptListProps) {
+  const [scripts, setScripts] = useState<Script[]>(initialScripts);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  // Mock data for development
+  // Use provided scripts directly
   useEffect(() => {
-    const mockScripts: Script[] = [
-      {
-        id: '1',
-        code: '// GitHub dark mode script\nconsole.log("GitHub dark mode enabled");',
-        metadata: {
-          name: 'GitHub Dark Mode',
-          namespace: 'scriptpilot.github',
-          version: '1.0.0',
-          description: 'Applies dark mode to GitHub',
-          author: 'ScriptPilot User',
-          match: ['https://github.com/*'],
-          grant: ['GM_addStyle'],
-          runAt: 'document-start',
-        },
-        enabled: true,
-        installedAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-20'),
-        source: 'manual' as const,
-        size: 1024,
-        executionCount: 42,
-        tags: ['github', 'dark-mode'],
-      },
-      {
-        id: '2',
-        code: '// YouTube ad blocking script\nconsole.log("YouTube ads blocked");',
-        metadata: {
-          name: 'YouTube Ad Blocker',
-          namespace: 'scriptpilot.youtube',
-          version: '2.1.0',
-          description: 'Blocks advertisements on YouTube',
-          author: 'ScriptPilot User',
-          match: ['https://www.youtube.com/*'],
-          grant: ['GM_addStyle', 'GM_getValue', 'GM_setValue'],
-          runAt: 'document-idle',
-        },
-        enabled: false,
-        installedAt: new Date('2024-02-01'),
-        updatedAt: new Date('2024-02-10'),
-        source: 'manual' as const,
-        size: 2048,
-        executionCount: 128,
-        tags: ['youtube', 'ads'],
-      },
-    ];
-
-    setTimeout(() => {
-      setScripts(mockScripts);
-      setLoading(false);
-    }, 500);
-  }, []);
+    setScripts(initialScripts);
+    setLoading(false);
+  }, [initialScripts]);
 
   const filteredScripts = scripts.filter(
     script =>
@@ -88,28 +51,47 @@ export function ScriptList({ onEditScript, onCreateScript }: ScriptListProps) {
         .includes(searchQuery.toLowerCase())
   );
 
-  const toggleScript = (scriptId: string) => {
+  const toggleScript = async (scriptId: string) => {
+    const script = scripts.find(s => s.id === scriptId);
+    if (!script) return;
+
+    const newEnabled = !script.enabled;
+
+    // Optimistic update
     setScripts(prev =>
-      prev.map(script =>
-        script.id === scriptId
-          ? { ...script, enabled: !script.enabled }
-          : script
-      )
+      prev.map(s => (s.id === scriptId ? { ...s, enabled: newEnabled } : s))
     );
 
-    const script = scripts.find(s => s.id === scriptId);
-    if (script) {
+    try {
+      if (onToggleScript) {
+        await onToggleScript(scriptId, newEnabled);
+      }
       toast.success(
-        `${script.metadata.name} ${script.enabled ? 'disabled' : 'enabled'}`
+        `${script.metadata.name} ${newEnabled ? 'enabled' : 'disabled'}`
       );
+    } catch (error) {
+      console.error('Failed to toggle script:', error);
+      // Revert on error
+      setScripts(prev =>
+        prev.map(s => (s.id === scriptId ? { ...s, enabled: !newEnabled } : s))
+      );
+      toast.error('Failed to toggle script');
     }
   };
 
-  const deleteScript = (scriptId: string) => {
+  const deleteScript = async (scriptId: string) => {
     const script = scripts.find(s => s.id === scriptId);
-    if (script) {
+    if (!script) return;
+
+    try {
+      if (onDeleteScript) {
+        await onDeleteScript(scriptId);
+      }
       setScripts(prev => prev.filter(s => s.id !== scriptId));
       toast.success(`${script.metadata.name} deleted`);
+    } catch (error) {
+      console.error('Failed to delete script:', error);
+      toast.error('Failed to delete script');
     }
   };
 
@@ -212,7 +194,7 @@ export function ScriptList({ onEditScript, onCreateScript }: ScriptListProps) {
                     </div>
 
                     <div className='text-xs text-muted-foreground'>
-                      Updated {script.updatedAt.toLocaleDateString()}
+                      Updated {formatDate(script.updatedAt)}
                     </div>
                   </div>
                 </CardContent>

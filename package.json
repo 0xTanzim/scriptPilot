@@ -13,10 +13,10 @@
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
-    "turbo": "^2.5.5",
-    "typescript": "^5.8.3",
     "eslint": "^8.56.0",
-    "prettier": "^3.2.5"
+    "prettier": "^3.2.5",
+    "turbo": "^2.5.5",
+    "typescript": "^5.8.3"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
@@ -26,5 +26,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "react-router-dom": "^7.7.0"
+  }
 }
